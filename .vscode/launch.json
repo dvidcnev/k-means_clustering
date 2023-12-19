@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MainProgram",
+            "request": "launch",
+            "mainClass": "src.main.MainProgram",
+            "projectName": "K-Means_Clustering_ce7b7361",
+            "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
+            "args": [
+                "true", //GUI mode
+                 "1", // 0 for SEQUENTIAL, 1 for PARALLEL, 2 for DISTRIBUTED
+                 "10", // number of clusters
+                 "500" // number of accumulation sites
+                ]
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}
