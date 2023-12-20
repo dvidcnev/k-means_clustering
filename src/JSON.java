@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class JSON {
 
@@ -40,25 +41,30 @@ public class JSON {
         }
     }
 
-    public void assignPoints(int bound) {
+    public static ArrayList<MyObject> getPoints(int times) {
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
             // Read JSON file into a List of objects
             ArrayList<MyObject> objects = objectMapper.readValue(new File("germany.json"),
                     new TypeReference<ArrayList<MyObject>>() {
                     });
 
+            Random rand = new Random();
+            int randomIndex;
+            // array to store info of which objects have been selected
+            ArrayList<MyObject> selectedObjects = new ArrayList<MyObject>();
+
             // Access elements in the List
-            for (int i = 0; i < bound; i++) {
-                System.out.println("Name: " + objects.get(i).getName());
-                System.out.println("Capacity: " + objects.get(i).getCapacity());
-                System.out.println("Latitude: " + objects.get(i).getLa());
-                System.out.println("Longitude: " + objects.get(i).getLo());
-                System.out.println();
+            for (int i = 0; i < times; i++) {
+                randomIndex = rand.nextInt(objects.size());
+                if (!selectedObjects.contains(objects.get(randomIndex))) {
+                    selectedObjects.add(objects.get(randomIndex));
+                }
             }
+            return selectedObjects;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 

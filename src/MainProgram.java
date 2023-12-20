@@ -21,10 +21,6 @@ public class MainProgram {
         if (Boolean.valueOf(args[0])) {
             mapGui.launchMap();
         }
-
-        // DATASET
-        JsonArray a = (JsonArray) parser.parse(new FileReader("c:\\exer4-courses.json"));
-
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
 

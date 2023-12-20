@@ -17,6 +17,9 @@ import io.github.makbn.jlmap.JLProperties;
 import io.github.makbn.jlmap.geojson.JLGeoJsonObject;
 import io.github.makbn.jlmap.listener.OnJLMapViewListener;
 import io.github.makbn.jlmap.model.*;
+
+import java.util.ArrayList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,15 +67,8 @@ public class MapGUI extends Application {
             public void mapLoadedSuccessfully(@NonNull JLMapView mapView) {
                 log.info("map loaded!");
 
-                map.getVectorLayer()
-                        .addCircle(JLLatLng.builder()
-                                .lat(52.520008)
-                                .lng(13.404954)
-                                .build(), 300,
-
-                                JLOptions.builder()
-                                        .color(Color.BLACK)
-                                        .build());
+                // draw sites
+                drawSites(map, 5000);
 
                 JLBounds bounds = JLBounds.builder()
                         .southWest(JLLatLng.builder()
@@ -99,6 +95,23 @@ public class MapGUI extends Application {
             }
 
         });
+    }
+
+    public void drawSites(JLMapView map, int timesBound) {
+
+        ArrayList<MyObject> selectedObjects = JSON.getPoints(timesBound);
+
+        for (MyObject obj : selectedObjects) {
+            map.getVectorLayer()
+                    .addCircle(JLLatLng.builder()
+                            .lat(Double.valueOf(obj.getLa()))
+                            .lng(Double.valueOf(obj.getLo()))
+                            .build(), 300,
+
+                            JLOptions.builder()
+                                    .color(Color.BLACK)
+                                    .build());
+        }
     }
 
 }
