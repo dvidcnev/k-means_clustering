@@ -9,39 +9,6 @@ import java.util.Random;
 
 public class JSON {
 
-    // public static void main(String[] args) {
-    // JSON json = new JSON();
-    // // json.printObjects();
-    // int numberOfObjects = json.getCapacity();
-    // System.out.println("Number of objects in the JSON array: " +
-    // numberOfObjects);
-    // json.assignPoints(5);
-    // }
-
-    public ArrayList<Site> fetchObjects() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // Read JSON file into a List of objects
-            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
-                    new TypeReference<ArrayList<Site>>() {
-                    });
-
-            return objects;
-            // Access elements in the List
-            // for (Site obj : objects) {
-            // System.out.println("Name: " + obj.getName());
-            // System.out.println("Capacity: " + obj.getCapacity());
-            // System.out.println("Latitude: " + obj.getLa());
-            // System.out.println("Longitude: " + obj.getLo());
-            // System.out.println();
-            // }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public static ArrayList<Site> randomPoints(int times) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -69,62 +36,68 @@ public class JSON {
         }
     }
 
-    public static double maxLatitude(ArrayList<Site> objects) {
-        double max = 0;
-        for (Site obj : objects) {
-            if (Double.valueOf(obj.getLa()) > max) {
-                max = Double.valueOf(obj.getLa());
-            }
-        }
-        return max;
-    }
+    // public static double maxLatitude(ArrayList<Site> objects) {
+    // double max = 0;
+    // for (Site obj : objects) {
+    // if (Double.valueOf(obj.getLa()) > max) {
+    // max = Double.valueOf(obj.getLa());
+    // }
+    // }
+    // return max;
+    // }
 
-    public static double minLatitude(ArrayList<Site> objects) {
-        double min = 100;
-        for (Site obj : objects) {
-            if (Double.valueOf(obj.getLa()) < min) {
-                min = Double.valueOf(obj.getLa());
-            }
-        }
-        return min;
-    }
+    // public static double minLatitude(ArrayList<Site> objects) {
+    // double min = 100;
+    // for (Site obj : objects) {
+    // if (Double.valueOf(obj.getLa()) < min) {
+    // min = Double.valueOf(obj.getLa());
+    // }
+    // }
+    // return min;
+    // }
 
-    public static double maxLongitude(ArrayList<Site> objects) {
-        double max = 0;
-        for (Site obj : objects) {
-            if (Double.valueOf(obj.getLo()) > max) {
-                max = Double.valueOf(obj.getLo());
-            }
-        }
-        return max;
-    }
+    // public static double maxLongitude(ArrayList<Site> objects) {
+    // double max = 0;
+    // for (Site obj : objects) {
+    // if (Double.valueOf(obj.getLo()) > max) {
+    // max = Double.valueOf(obj.getLo());
+    // }
+    // }
+    // return max;
+    // }
 
-    public static double minLongitude(ArrayList<Site> objects) {
-        double min = 100;
-        for (Site obj : objects) {
-            if (Double.valueOf(obj.getLo()) < min) {
-                min = Double.valueOf(obj.getLo());
-            }
-        }
-        return min;
-    }
+    // public static double minLongitude(ArrayList<Site> objects) {
+    // double min = 100;
+    // for (Site obj : objects) {
+    // if (Double.valueOf(obj.getLo()) < min) {
+    // min = Double.valueOf(obj.getLo());
+    // }
+    // }
+    // return min;
+    // }
 
     // generate a random number between min and max
-    public static double generateRandom(double min, double max) {
-        Random rand = new Random();
-        return min + rand.nextDouble() * (max - min);
-    }
+    // public static double generateRandom(double min, double max) {
+    // Random rand = new Random();
+    // return min + rand.nextDouble() * (max - min);
+    // }
 
     // with the given clusters ( amount of clusters ), assign points to each with
     // random
     // coordinates
-    public static ArrayList<Cluster> randomClusters(int numClusters, double minLatitude, double maxLatitude,
-            double minLongitude, double maxLongitude) {
+    public static ArrayList<Cluster> randomClusters(int numClusters, ArrayList<Site> sites) {
         ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+        Random rand = new Random();
+        // for each cluster, generate a random point that is from the sites, and don't
+        // regenerate if it's already been generated
         for (int i = 0; i < numClusters; i++) {
-            double randomLatitude = generateRandom(minLatitude, maxLatitude);
-            double randomLongitude = generateRandom(minLongitude, maxLongitude);
-            clusters.add(new Cluster(randomLatitude, randomLongitude));
+            int randomIndex = rand.nextInt(sites.size());
+            double randomLatitude = Double.valueOf(sites.get(randomIndex).getLa());
+            double randomLongitude = Double.valueOf(sites.get(randomIndex).getLo());
+            Cluster cluster = new Cluster(randomLatitude, randomLongitude);
+            if (!clusters.contains(cluster)) {
+                clusters.add(cluster);
+            }
         }
         return clusters;
     }

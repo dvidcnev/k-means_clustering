@@ -19,16 +19,7 @@ public class MainProgram {
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
             // the random clusters that get generated
-            double minLatitude = JSON.minLatitude(Dataset.getSites());
-            System.out.println("minLatitude: " + minLatitude);
-            double maxLatitude = JSON.maxLatitude(Dataset.getSites());
-            System.out.println("maxLatitude: " + maxLatitude);
-            double minLongitude = JSON.minLongitude(Dataset.getSites());
-            System.out.println("minLongitude: " + minLongitude);
-            double maxLongitude = JSON.maxLongitude(Dataset.getSites());
-            System.out.println("maxLongitude: " + maxLongitude);
-            Dataset.setClusters(JSON.randomClusters(NumClusters, minLatitude, maxLatitude, minLongitude,
-                    maxLongitude));
+            Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
         }
 
         if (Boolean.valueOf(args[0])) {

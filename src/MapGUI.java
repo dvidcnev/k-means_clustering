@@ -123,7 +123,7 @@ public class MapGUI extends Application {
                     .addCircle(JLLatLng.builder()
                             .lat(Double.valueOf(cluster.getLa()))
                             .lng(Double.valueOf(cluster.getLo()))
-                            .build(), 300,
+                            .build(), 250,
 
                             JLOptions.builder()
                                     .color(Color.RED)
