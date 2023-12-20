@@ -112,7 +112,7 @@ public class MapGUI extends Application {
                             .build(), 300,
 
                             JLOptions.builder()
-                                    .color(Color.BLACK)
+                                    .color(Color.rgb(255, 255, 0))
                                     .build());
         }
     }
@@ -123,10 +123,15 @@ public class MapGUI extends Application {
                     .addCircle(JLLatLng.builder()
                             .lat(Double.valueOf(cluster.getLa()))
                             .lng(Double.valueOf(cluster.getLo()))
-                            .build(), 250,
+                            .build(), 2000,
 
                             JLOptions.builder()
-                                    .color(Color.RED)
+                                    .color(
+                                            Color.rgb(
+                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster)).getR(),
+                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster)).getG(),
+                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster))
+                                                            .getB()))
                                     .build());
         }
     }

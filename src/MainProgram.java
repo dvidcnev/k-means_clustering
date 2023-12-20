@@ -13,6 +13,9 @@ public class MainProgram {
         final int NumClusters = Integer.valueOf(args[2]);
         final int NumSites = Integer.valueOf(args[3]);
 
+        // generate random rgb for each cluster and save it for the index of the cluster
+        Dataset.setRGB(JSON.randomRGB(NumClusters));
+
         Dataset.setSites(JSON.randomPoints(NumSites));
         MapGUI mapGui = new MapGUI();
 

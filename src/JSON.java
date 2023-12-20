@@ -36,52 +36,6 @@ public class JSON {
         }
     }
 
-    // public static double maxLatitude(ArrayList<Site> objects) {
-    // double max = 0;
-    // for (Site obj : objects) {
-    // if (Double.valueOf(obj.getLa()) > max) {
-    // max = Double.valueOf(obj.getLa());
-    // }
-    // }
-    // return max;
-    // }
-
-    // public static double minLatitude(ArrayList<Site> objects) {
-    // double min = 100;
-    // for (Site obj : objects) {
-    // if (Double.valueOf(obj.getLa()) < min) {
-    // min = Double.valueOf(obj.getLa());
-    // }
-    // }
-    // return min;
-    // }
-
-    // public static double maxLongitude(ArrayList<Site> objects) {
-    // double max = 0;
-    // for (Site obj : objects) {
-    // if (Double.valueOf(obj.getLo()) > max) {
-    // max = Double.valueOf(obj.getLo());
-    // }
-    // }
-    // return max;
-    // }
-
-    // public static double minLongitude(ArrayList<Site> objects) {
-    // double min = 100;
-    // for (Site obj : objects) {
-    // if (Double.valueOf(obj.getLo()) < min) {
-    // min = Double.valueOf(obj.getLo());
-    // }
-    // }
-    // return min;
-    // }
-
-    // generate a random number between min and max
-    // public static double generateRandom(double min, double max) {
-    // Random rand = new Random();
-    // return min + rand.nextDouble() * (max - min);
-    // }
-
     // with the given clusters ( amount of clusters ), assign points to each with
     // random
     // coordinates
@@ -100,6 +54,23 @@ public class JSON {
             }
         }
         return clusters;
+    }
+
+    // make each cluster have an RGB value ( for the color ) and make sure that the
+    // rgb sticks for that index of the cluster
+    public static ArrayList<RGB> randomRGB(int numClusters) {
+        ArrayList<RGB> rgb = new ArrayList<RGB>();
+        Random rand = new Random();
+        for (int i = 0; i < numClusters; i++) {
+            int r = rand.nextInt(255);
+            int g = rand.nextInt(255);
+            int b = rand.nextInt(255);
+            RGB rgbObj = new RGB(r, g, b);
+            if (!rgb.contains(rgbObj)) {
+                rgb.add(rgbObj);
+            }
+        }
+        return rgb;
     }
 
 }
