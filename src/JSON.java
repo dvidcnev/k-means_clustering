@@ -84,9 +84,21 @@ public class JSON {
         return distance;
     }
 
+    public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
+        ArrayList<Cluster> copiedClusters = new ArrayList<>();
+        for (Cluster cluster : clusters) {
+            // Create a new Cluster instance and copy values
+            Cluster newCluster = new Cluster(cluster.getLa(), cluster.getLo());
+            // If there are other properties to copy, do it here
+            copiedClusters.add(newCluster);
+        }
+        return copiedClusters;
+    }
+
     // if a site is closer to a cluster than the other clusters, then assign it to
     // that cluster
     public static void assignSitesToClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        System.out.println("Assigning sites to clusters...");
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster closestCluster = null;
@@ -101,25 +113,33 @@ public class JSON {
         }
     }
 
-    // calculate the new center of each cluster
+    // calculate the new center of each cluster ( make sure it's in the center of
+    // the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
+        System.out.println("Calculating new centers...");
         for (Cluster cluster : clusters) {
             double sumLatitude = 0;
             double sumLongitude = 0;
             int numSites = 0;
             for (Site site : Dataset.getSites()) {
                 if (site.getCluster().equals(cluster)) {
+
                     sumLatitude += Double.valueOf(site.getLa());
                     sumLongitude += Double.valueOf(site.getLo());
                     numSites++;
                 }
             }
-            cluster = new Cluster(sumLatitude / numSites, sumLongitude / numSites);
+            if (numSites != 0) { // Avoid division by zero
+                // Update the coordinates in the actual clusters list
+                cluster.setLa(sumLatitude / numSites);
+                cluster.setLo(sumLongitude / numSites);
+            }
         }
     }
 
     // assign the cluster to the new centers
     public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        System.out.println("Assigning sites to new clusters...");
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster closestCluster = null;
@@ -132,6 +152,35 @@ public class JSON {
             }
             site.setCluster(closestCluster);
         }
+        Dataset.setSites(sites);
+    }
+
+    // print first cluster in the list of clusters
+    public static void printFirstCluster(ArrayList<Cluster> clusters) {
+
+        System.out.println("JSON: First cluster: " + clusters.get(0).getLa() + " " + clusters.get(0).getLo());
+    }
+
+    // check if the clusters are the same for a given new site with new center and
+    // another older site provided
+    public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
+        double threshold = 0.001; // Set your convergence threshold here
+        for (int i = 0; i < newClusters.size(); i++) {
+            double distance = calculateDistanceBetweenCentroids(newClusters.get(i), oldClusters.get(i));
+            if (distance > threshold) {
+                System.out.println("Clusters are not the same!");
+                return false;
+            }
+        }
+        System.out.println("Clusters are the same!");
+        return true;
+    }
+
+    private static double calculateDistanceBetweenCentroids(Cluster newCluster, Cluster oldCluster) {
+        // Calculate distance between centroids (newCluster and oldCluster)
+        double distance = Math.sqrt(Math.pow((newCluster.getLa() - oldCluster.getLa()), 2)
+                + Math.pow((newCluster.getLo() - oldCluster.getLo()), 2));
+        return distance;
     }
 }
 
@@ -186,6 +235,14 @@ class Cluster {
 
     public double getLo() {
         return Longitude;
+    }
+
+    public void setLa(double Latitude) {
+        this.Latitude = Latitude;
+    }
+
+    public void setLo(double Longitude) {
+        this.Longitude = Longitude;
     }
 
     public void setRGB(RGB rgb) {

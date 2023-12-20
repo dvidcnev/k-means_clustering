@@ -21,4 +21,11 @@ public class Dataset {
     public static ArrayList<Cluster> getClusters() {
         return clusters;
     }
+
+    // print instance of first cluster just for debugging purpose ( print the lat
+    // and long of the first cluster)
+    public static void printFirstCluster() {
+        System.out.println("DATASET: First cluster: " + clusters.get(0).getLa() + " " + clusters.get(0).getLo());
+    }
+
 }
