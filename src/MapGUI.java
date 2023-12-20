@@ -17,6 +17,7 @@ import io.github.makbn.jlmap.JLProperties;
 import io.github.makbn.jlmap.listener.OnJLMapViewListener;
 import io.github.makbn.jlmap.model.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +26,8 @@ import org.apache.logging.log4j.Logger;
 public class MapGUI extends Application {
     static final Logger log = LogManager.getLogger(MapGUI.class);
 
+    public JLMapView map;
+
     public void launchMap() {
         launch(); // Calls the start(Stage) method internally
     }
@@ -32,7 +35,7 @@ public class MapGUI extends Application {
     @Override
     public void start(@NonNull Stage stage) {
         // building a new map view
-        final JLMapView map = JLMapView
+        map = JLMapView
                 .builder()
                 .mapType(JLProperties.MapType.OSM_HOT)
                 .showZoomController(true)
@@ -66,8 +69,10 @@ public class MapGUI extends Application {
             public void mapLoadedSuccessfully(@NonNull JLMapView mapView) {
                 log.info("map loaded!");
 
-                // draw sites
-                // drawSites(map, 11000);
+                // drawClusters(clusters);
+                drawSites(map);
+
+                log.info("map loaded with sites!");
 
                 JLBounds bounds = JLBounds.builder()
                         .southWest(JLLatLng.builder()
@@ -96,8 +101,10 @@ public class MapGUI extends Application {
         });
     }
 
-    public void drawSites(JLMapView map, ArrayList<Site> selectedObjects) {
-        for (Site obj : selectedObjects) {
+    private void drawSites(JLMapView map) {
+        System.out.println("Drawing sites...");
+        for (Site obj : MainProgram.getSites()) {
+            System.out.println("Drawing site: " + obj.getName());
             map.getVectorLayer()
                     .addCircle(JLLatLng.builder()
                             .lat(Double.valueOf(obj.getLa()))
@@ -109,5 +116,19 @@ public class MapGUI extends Application {
                                     .build());
         }
     }
+
+    // private void drawClusters(ArrayList<Cluster> clusters) {
+    // for (Cluster cluster : clusters) {
+    // map.getVectorLayer()
+    // .addCircle(JLLatLng.builder()
+    // .lat(Double.valueOf(cluster.getLa()))
+    // .lng(Double.valueOf(cluster.getLo()))
+    // .build(), 300,
+
+    // JLOptions.builder()
+    // .color(Color.RED)
+    // .build());
+    // }
+    // }
 
 }

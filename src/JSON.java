@@ -166,11 +166,11 @@ class Cluster {
         this.Longitude = Longitude;
     }
 
-    public double getLatitude() {
+    public double getLa() {
         return Latitude;
     }
 
-    public double getLongitude() {
+    public double getLo() {
         return Longitude;
     }
 
