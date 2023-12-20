@@ -1,5 +1,9 @@
 package src;
 
+import java.io.FileReader;
+
+import com.google.gson.JsonArray;
+
 public class MainProgram {
     public static void main(String[] args) {
 
@@ -12,12 +16,16 @@ public class MainProgram {
         final int Clusters = Integer.valueOf(args[2]);
         final int Sites = Integer.valueOf(args[3]);
 
+        MapGUI mapGui = new MapGUI();
         // GUI interface
         if (Boolean.valueOf(args[0])) {
-            MapGUI mapGui = new MapGUI();
             mapGui.launchMap();
         }
 
+        // DATASET
+        JsonArray a = (JsonArray) parser.parse(new FileReader("c:\\exer4-courses.json"));
+
+        // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
 
         }

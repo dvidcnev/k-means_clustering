@@ -64,10 +64,15 @@ public class MapGUI extends Application {
             public void mapLoadedSuccessfully(@NonNull JLMapView mapView) {
                 log.info("map loaded!");
 
-                // map.setView(JLLatLng.builder()
-                // .lng(50)
-                // .lat(13)
-                // .build());
+                map.getVectorLayer()
+                        .addCircle(JLLatLng.builder()
+                                .lat(52.520008)
+                                .lng(13.404954)
+                                .build(), 300,
+
+                                JLOptions.builder()
+                                        .color(Color.BLACK)
+                                        .build());
 
                 JLBounds bounds = JLBounds.builder()
                         .southWest(JLLatLng.builder()
