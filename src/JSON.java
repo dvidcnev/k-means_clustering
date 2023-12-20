@@ -73,6 +73,66 @@ public class JSON {
         return rgb;
     }
 
+    // Calculate the distance of a site between all the clusters
+    public static double calculateDistance(Site site, Cluster cluster) {
+        double siteLatitude = Double.valueOf(site.getLa());
+        double siteLongitude = Double.valueOf(site.getLo());
+        double clusterLatitude = cluster.getLa();
+        double clusterLongitude = cluster.getLo();
+        double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
+                + Math.pow((siteLongitude - clusterLongitude), 2));
+        return distance;
+    }
+
+    // if a site is closer to a cluster than the other clusters, then assign it to
+    // that cluster
+    public static void assignSitesToClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        for (Site site : sites) {
+            double minDistance = Double.MAX_VALUE;
+            Cluster closestCluster = null;
+            for (Cluster cluster : clusters) {
+                double distance = calculateDistance(site, cluster);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestCluster = cluster;
+                }
+            }
+            site.setCluster(closestCluster);
+        }
+    }
+
+    // calculate the new center of each cluster
+    public static void calculateNewCenters(ArrayList<Cluster> clusters) {
+        for (Cluster cluster : clusters) {
+            double sumLatitude = 0;
+            double sumLongitude = 0;
+            int numSites = 0;
+            for (Site site : Dataset.getSites()) {
+                if (site.getCluster().equals(cluster)) {
+                    sumLatitude += Double.valueOf(site.getLa());
+                    sumLongitude += Double.valueOf(site.getLo());
+                    numSites++;
+                }
+            }
+            cluster = new Cluster(sumLatitude / numSites, sumLongitude / numSites);
+        }
+    }
+
+    // assign the cluster to the new centers
+    public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        for (Site site : sites) {
+            double minDistance = Double.MAX_VALUE;
+            Cluster closestCluster = null;
+            for (Cluster cluster : clusters) {
+                double distance = calculateDistance(site, cluster);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestCluster = cluster;
+                }
+            }
+            site.setCluster(closestCluster);
+        }
+    }
 }
 
 class Site {
@@ -80,6 +140,7 @@ class Site {
     private double capacity;
     private String la;
     private String lo;
+    private Cluster cluster;
 
     // Getters and setters
     public String getName() {
@@ -98,11 +159,20 @@ class Site {
         return lo;
     }
 
+    public Cluster getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(Cluster cluster) {
+        this.cluster = cluster;
+    }
+
 }
 
 class Cluster {
     private double Latitude;
     private double Longitude;
+    private RGB rgb;
 
     // Getters and setters
     public Cluster(double Latitude, double Longitude) {
@@ -118,4 +188,37 @@ class Cluster {
         return Longitude;
     }
 
+    public void setRGB(RGB rgb) {
+        this.rgb = rgb;
+    }
+
+    public RGB getRGB() {
+        return rgb;
+    }
+
+}
+
+class RGB {
+    private int r;
+    private int g;
+    private int b;
+
+    public RGB(int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    public int getR() {
+        return r;
+    }
+
+    public int getG() {
+        return g;
+    }
+
+    public int getB() {
+        return b;
+
+    }
 }

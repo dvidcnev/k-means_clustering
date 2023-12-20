@@ -69,9 +69,8 @@ public class MapGUI extends Application {
             public void mapLoadedSuccessfully(@NonNull JLMapView mapView) {
                 log.info("map loaded!");
 
-                // drawClusters(clusters);
-                drawSites(map);
                 drawClusters(map);
+                drawSites(map);
 
                 log.info("map loaded with sites!");
 
@@ -112,7 +111,12 @@ public class MapGUI extends Application {
                             .build(), 300,
 
                             JLOptions.builder()
-                                    .color(Color.rgb(255, 255, 0))
+                                    .color(
+                                            // get the rgb of the cluster that the site belongs to
+                                            Color.rgb(
+                                                    obj.getCluster().getRGB().getR(),
+                                                    obj.getCluster().getRGB().getG(),
+                                                    obj.getCluster().getRGB().getB()))
                                     .build());
         }
     }
@@ -128,10 +132,9 @@ public class MapGUI extends Application {
                             JLOptions.builder()
                                     .color(
                                             Color.rgb(
-                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster)).getR(),
-                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster)).getG(),
-                                                    Dataset.getRGB().get(Dataset.getClusters().indexOf(cluster))
-                                                            .getB()))
+                                                    cluster.getRGB().getR(),
+                                                    cluster.getRGB().getG(),
+                                                    cluster.getRGB().getB()))
                                     .build());
         }
     }
