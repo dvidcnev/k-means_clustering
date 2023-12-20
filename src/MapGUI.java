@@ -71,6 +71,7 @@ public class MapGUI extends Application {
 
                 // drawClusters(clusters);
                 drawSites(map);
+                drawClusters(map);
 
                 log.info("map loaded with sites!");
 
@@ -103,8 +104,7 @@ public class MapGUI extends Application {
 
     private void drawSites(JLMapView map) {
         System.out.println("Drawing sites...");
-        for (Site obj : MainProgram.getSites()) {
-            System.out.println("Drawing site: " + obj.getName());
+        for (Site obj : Dataset.getSites()) {
             map.getVectorLayer()
                     .addCircle(JLLatLng.builder()
                             .lat(Double.valueOf(obj.getLa()))
@@ -117,18 +117,18 @@ public class MapGUI extends Application {
         }
     }
 
-    // private void drawClusters(ArrayList<Cluster> clusters) {
-    // for (Cluster cluster : clusters) {
-    // map.getVectorLayer()
-    // .addCircle(JLLatLng.builder()
-    // .lat(Double.valueOf(cluster.getLa()))
-    // .lng(Double.valueOf(cluster.getLo()))
-    // .build(), 300,
+    private void drawClusters(JLMapView map) {
+        for (Cluster cluster : Dataset.getClusters()) {
+            map.getVectorLayer()
+                    .addCircle(JLLatLng.builder()
+                            .lat(Double.valueOf(cluster.getLa()))
+                            .lng(Double.valueOf(cluster.getLo()))
+                            .build(), 300,
 
-    // JLOptions.builder()
-    // .color(Color.RED)
-    // .build());
-    // }
-    // }
+                            JLOptions.builder()
+                                    .color(Color.RED)
+                                    .build());
+        }
+    }
 
 }

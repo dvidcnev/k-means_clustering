@@ -1,10 +1,6 @@
 package src;
 
-import java.util.ArrayList;
-
 public class MainProgram {
-
-    private static ArrayList<Site> sites; // Static variable to hold sites
 
     public static void main(String[] args) {
 
@@ -17,19 +13,22 @@ public class MainProgram {
         final int NumClusters = Integer.valueOf(args[2]);
         final int NumSites = Integer.valueOf(args[3]);
 
-        ArrayList<Cluster> clusters = new ArrayList<Cluster>();
-        sites = JSON.randomPoints(NumSites);
+        Dataset.setSites(JSON.randomPoints(NumSites));
         MapGUI mapGui = new MapGUI();
 
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
             // the random clusters that get generated
-            double minLatitude = JSON.minLatitude(sites);
-            double maxLatitude = JSON.maxLatitude(sites);
-            double minLongitude = JSON.minLongitude(sites);
-            double maxLongitude = JSON.maxLongitude(sites);
-            clusters = JSON.randomClusters(NumClusters, minLatitude, maxLatitude, minLongitude,
-                    maxLongitude);
+            double minLatitude = JSON.minLatitude(Dataset.getSites());
+            System.out.println("minLatitude: " + minLatitude);
+            double maxLatitude = JSON.maxLatitude(Dataset.getSites());
+            System.out.println("maxLatitude: " + maxLatitude);
+            double minLongitude = JSON.minLongitude(Dataset.getSites());
+            System.out.println("minLongitude: " + minLongitude);
+            double maxLongitude = JSON.maxLongitude(Dataset.getSites());
+            System.out.println("maxLongitude: " + maxLongitude);
+            Dataset.setClusters(JSON.randomClusters(NumClusters, minLatitude, maxLatitude, minLongitude,
+                    maxLongitude));
         }
 
         if (Boolean.valueOf(args[0])) {
@@ -38,7 +37,4 @@ public class MainProgram {
 
     }
 
-    public static ArrayList<Site> getSites() {
-        return sites; // Getter method to access sites from other classes
-    }
 }
