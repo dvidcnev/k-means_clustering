@@ -11,13 +11,14 @@ import java.util.Random;
 
 public class JSON {
 
-    public static void main(String[] args) {
-        JSON json = new JSON();
-        // json.printObjects();
-        int numberOfObjects = json.getCapacity();
-        System.out.println("Number of objects in the JSON array: " + numberOfObjects);
-        json.assignPoints(5);
-    }
+    // public static void main(String[] args) {
+    // JSON json = new JSON();
+    // // json.printObjects();
+    // int numberOfObjects = json.getCapacity();
+    // System.out.println("Number of objects in the JSON array: " +
+    // numberOfObjects);
+    // json.assignPoints(5);
+    // }
 
     public void printObjects() {
         try {

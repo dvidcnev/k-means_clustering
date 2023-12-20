@@ -68,7 +68,7 @@ public class MapGUI extends Application {
                 log.info("map loaded!");
 
                 // draw sites
-                drawSites(map, 5000);
+                drawSites(map, 11000);
 
                 JLBounds bounds = JLBounds.builder()
                         .southWest(JLLatLng.builder()
