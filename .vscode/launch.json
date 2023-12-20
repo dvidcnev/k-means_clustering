@@ -20,7 +20,7 @@
             "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
             "args": [
                 "false",
-                "1",
+                "0", //sequential,
                 "10",
                 "500"
             ]

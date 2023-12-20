@@ -14,7 +14,6 @@ import lombok.NonNull;
 // import io.github.makbn.jlmap.JLMapCallbackHandler;
 import io.github.makbn.jlmap.JLMapView;
 import io.github.makbn.jlmap.JLProperties;
-import io.github.makbn.jlmap.geojson.JLGeoJsonObject;
 import io.github.makbn.jlmap.listener.OnJLMapViewListener;
 import io.github.makbn.jlmap.model.*;
 
@@ -68,7 +67,7 @@ public class MapGUI extends Application {
                 log.info("map loaded!");
 
                 // draw sites
-                drawSites(map, 11000);
+                // drawSites(map, 11000);
 
                 JLBounds bounds = JLBounds.builder()
                         .southWest(JLLatLng.builder()
@@ -97,11 +96,8 @@ public class MapGUI extends Application {
         });
     }
 
-    public void drawSites(JLMapView map, int timesBound) {
-
-        ArrayList<MyObject> selectedObjects = JSON.getPoints(timesBound);
-
-        for (MyObject obj : selectedObjects) {
+    public void drawSites(JLMapView map, ArrayList<Site> selectedObjects) {
+        for (Site obj : selectedObjects) {
             map.getVectorLayer()
                     .addCircle(JLLatLng.builder()
                             .lat(Double.valueOf(obj.getLa()))

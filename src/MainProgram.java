@@ -1,8 +1,6 @@
 package src;
 
-import java.io.FileReader;
-
-import com.google.gson.JsonArray;
+import java.util.ArrayList;
 
 public class MainProgram {
     public static void main(String[] args) {
@@ -13,8 +11,8 @@ public class MainProgram {
             System.exit(1);
         }
 
-        final int Clusters = Integer.valueOf(args[2]);
-        final int Sites = Integer.valueOf(args[3]);
+        final int NumClusters = Integer.valueOf(args[2]);
+        final int NumSites = Integer.valueOf(args[3]);
 
         MapGUI mapGui = new MapGUI();
         // GUI interface
@@ -23,6 +21,13 @@ public class MainProgram {
         }
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
+            // the random sites that get generated
+            ArrayList<Site> sites = JSON.randomPoints(NumSites);
+            // the random clusters that get generated
+            double minLatitude = JSON.minLatitude(sites);
+            double maxLatitude = JSON.maxLatitude(sites);
+            double minLongitude = JSON.minLongitude(sites);
+            double maxLongitude = JSON.maxLongitude(sites);
 
         }
 
