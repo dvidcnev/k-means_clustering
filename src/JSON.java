@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JSON {
@@ -13,6 +15,7 @@ public class JSON {
         // json.printObjects();
         int numberOfObjects = json.getCapacity();
         System.out.println("Number of objects in the JSON array: " + numberOfObjects);
+        json.assignPoints(5);
     }
 
     public void printObjects() {
@@ -30,6 +33,28 @@ public class JSON {
                 System.out.println("Capacity: " + obj.getCapacity());
                 System.out.println("Latitude: " + obj.getLa());
                 System.out.println("Longitude: " + obj.getLo());
+                System.out.println();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void assignPoints(int bound) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Read JSON file into a List of objects
+            ArrayList<MyObject> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<MyObject>>() {
+                    });
+
+            // Access elements in the List
+            for (int i = 0; i < bound; i++) {
+                System.out.println("Name: " + objects.get(i).getName());
+                System.out.println("Capacity: " + objects.get(i).getCapacity());
+                System.out.println("Latitude: " + objects.get(i).getLa());
+                System.out.println("Longitude: " + objects.get(i).getLo());
                 System.out.println();
             }
         } catch (IOException e) {
