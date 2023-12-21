@@ -4,56 +4,23 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class JSON {
 
-    // public static void main(String[] args) {
-    // JSON json = new JSON();
-    // // json.printObjects();
-    // int numberOfObjects = json.getCapacity();
-    // System.out.println("Number of objects in the JSON array: " +
-    // numberOfObjects);
-    // json.assignPoints(5);
-    // }
-
-    public void printObjects() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // Read JSON file into a List of objects
-            List<MyObject> objects = objectMapper.readValue(new File("germany.json"),
-                    new TypeReference<List<MyObject>>() {
-                    });
-
-            // Access elements in the List
-            for (MyObject obj : objects) {
-                System.out.println("Name: " + obj.getName());
-                System.out.println("Capacity: " + obj.getCapacity());
-                System.out.println("Latitude: " + obj.getLa());
-                System.out.println("Longitude: " + obj.getLo());
-                System.out.println();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static ArrayList<MyObject> getPoints(int times) {
+    public static ArrayList<Site> randomPoints(int times) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             // Read JSON file into a List of objects
-            ArrayList<MyObject> objects = objectMapper.readValue(new File("germany.json"),
-                    new TypeReference<ArrayList<MyObject>>() {
+            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<Site>>() {
                     });
 
             Random rand = new Random();
             int randomIndex;
             // array to store info of which objects have been selected
-            ArrayList<MyObject> selectedObjects = new ArrayList<MyObject>();
+            ArrayList<Site> selectedObjects = new ArrayList<Site>();
 
             // Access elements in the List
             for (int i = 0; i < times; i++) {
@@ -69,61 +36,240 @@ public class JSON {
         }
     }
 
-    public int getCapacity() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // Read JSON file into a List of objects
-            List<MyObject> objects = objectMapper.readValue(new File("germany.json"),
-                    new TypeReference<List<MyObject>>() {
-                    });
-
-            // Get the number of objects in the array
-            int numberOfObjects = objects.size();
-            return numberOfObjects;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 0;
+    // with the given clusters ( amount of clusters ), assign points to each with
+    // random
+    // coordinates
+    public static ArrayList<Cluster> randomClusters(int numClusters, ArrayList<Site> sites) {
+        ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+        Random rand = new Random();
+        // for each cluster, generate a random point that is from the sites, and don't
+        // regenerate if it's already been generated
+        for (int i = 0; i < numClusters; i++) {
+            int randomIndex = rand.nextInt(sites.size());
+            double randomLatitude = Double.valueOf(sites.get(randomIndex).getLa());
+            double randomLongitude = Double.valueOf(sites.get(randomIndex).getLo());
+            Cluster cluster = new Cluster(randomLatitude, randomLongitude);
+            if (!clusters.contains(cluster)) {
+                clusters.add(cluster);
+            }
         }
+        return clusters;
+    }
+
+    // make each cluster have an RGB value ( for the color ) and make sure that the
+    // rgb sticks for that index of the cluster
+    public static ArrayList<RGB> randomRGB(int numClusters) {
+        ArrayList<RGB> rgb = new ArrayList<RGB>();
+        Random rand = new Random();
+        for (int i = 0; i < numClusters; i++) {
+            int r = rand.nextInt(255);
+            int g = rand.nextInt(255);
+            int b = rand.nextInt(255);
+            RGB rgbObj = new RGB(r, g, b);
+            if (!rgb.contains(rgbObj)) {
+                rgb.add(rgbObj);
+            }
+        }
+        return rgb;
+    }
+
+    // Calculate the distance of a site between all the clusters
+    public static double calculateDistance(Site site, Cluster cluster) {
+        double siteLatitude = Double.valueOf(site.getLa());
+        double siteLongitude = Double.valueOf(site.getLo());
+        double clusterLatitude = cluster.getLa();
+        double clusterLongitude = cluster.getLo();
+        double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
+                + Math.pow((siteLongitude - clusterLongitude), 2));
+        return distance;
+    }
+
+    public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
+        ArrayList<Cluster> copiedClusters = new ArrayList<>();
+        for (Cluster cluster : clusters) {
+            // Create a new Cluster instance and copy values
+            Cluster newCluster = new Cluster(cluster.getLa(), cluster.getLo());
+            // If there are other properties to copy, do it here
+            copiedClusters.add(newCluster);
+        }
+        return copiedClusters;
+    }
+
+    // if a site is closer to a cluster than the other clusters, then assign it to
+    // that cluster
+    public static void assignSitesToClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        for (Site site : sites) {
+            double minDistance = Double.MAX_VALUE;
+            Cluster closestCluster = null;
+            for (Cluster cluster : clusters) {
+                double distance = calculateDistance(site, cluster);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestCluster = cluster;
+                }
+            }
+            site.setCluster(closestCluster);
+        }
+    }
+
+    // calculate the new center of each cluster ( make sure it's in the center of
+    // the sites that it contains)
+    public static void calculateNewCenters(ArrayList<Cluster> clusters) {
+        for (Cluster cluster : clusters) {
+            double sumLatitude = 0;
+            double sumLongitude = 0;
+            int numSites = 0;
+            for (Site site : Dataset.getSites()) {
+                if (site.getCluster().equals(cluster)) {
+
+                    sumLatitude += Double.valueOf(site.getLa());
+                    sumLongitude += Double.valueOf(site.getLo());
+                    numSites++;
+                }
+            }
+            if (numSites != 0) { // Avoid division by zero
+                // Update the coordinates in the actual clusters list
+                cluster.setLa(sumLatitude / numSites);
+                cluster.setLo(sumLongitude / numSites);
+            }
+        }
+    }
+
+    // assign the cluster to the new centers
+    public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        for (Site site : sites) {
+            double minDistance = Double.MAX_VALUE;
+            Cluster closestCluster = null;
+            for (Cluster cluster : clusters) {
+                double distance = calculateDistance(site, cluster);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestCluster = cluster;
+                }
+            }
+            site.setCluster(closestCluster);
+        }
+        Dataset.setSites(sites);
+    }
+
+    // print first cluster in the list of clusters
+    public static void printFirstCluster(ArrayList<Cluster> clusters) {
+        System.out.println("JSON: First cluster: " + clusters.get(0).getLa() + " " + clusters.get(0).getLo());
+    }
+
+    // check if the clusters are the same for a given new site with new center and
+    // another older site provided
+    public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
+        double threshold = 0.001;
+        for (int i = 0; i < newClusters.size(); i++) {
+            double distance = calculateDistanceBetweenCentroids(newClusters.get(i), oldClusters.get(i));
+            if (distance > threshold) { // clusters are the same
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static double calculateDistanceBetweenCentroids(Cluster newCluster, Cluster oldCluster) {
+        // Calculate distance between centroids (newCluster and oldCluster)
+        double distance = Math.sqrt(Math.pow((newCluster.getLa() - oldCluster.getLa()), 2)
+                + Math.pow((newCluster.getLo() - oldCluster.getLo()), 2));
+        return distance;
     }
 }
 
-class MyObject {
+class Site {
     private String name;
     private double capacity;
     private String la;
     private String lo;
+    private Cluster cluster;
 
     // Getters and setters
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public double getCapacity() {
         return capacity;
-    }
-
-    public void setCapacity(double capacity) {
-        this.capacity = capacity;
     }
 
     public String getLa() {
         return la;
     }
 
-    public void setLa(String la) {
-        this.la = la;
-    }
-
     public String getLo() {
         return lo;
     }
 
-    public void setLo(String lo) {
-        this.lo = lo;
+    public Cluster getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(Cluster cluster) {
+        this.cluster = cluster;
+    }
+
+}
+
+class Cluster {
+    private double Latitude;
+    private double Longitude;
+    private RGB rgb;
+
+    // Getters and setters
+    public Cluster(double Latitude, double Longitude) {
+        this.Latitude = Latitude;
+        this.Longitude = Longitude;
+    }
+
+    public double getLa() {
+        return Latitude;
+    }
+
+    public double getLo() {
+        return Longitude;
+    }
+
+    public void setLa(double Latitude) {
+        this.Latitude = Latitude;
+    }
+
+    public void setLo(double Longitude) {
+        this.Longitude = Longitude;
+    }
+
+    public void setRGB(RGB rgb) {
+        this.rgb = rgb;
+    }
+
+    public RGB getRGB() {
+        return rgb;
+    }
+
+}
+
+class RGB {
+    private int r;
+    private int g;
+    private int b;
+
+    public RGB(int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    public int getR() {
+        return r;
+    }
+
+    public int getG() {
+        return g;
+    }
+
+    public int getB() {
+        return b;
+
     }
 }

@@ -19,10 +19,10 @@
             "projectName": "K-Means_Clustering_ce7b7361",
             "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
             "args": [
-                "false",
-                "1",
-                "10",
-                "500"
+                "true",
+                "0", //sequential,
+                "5",
+                "1100"
             ]
         },
         {

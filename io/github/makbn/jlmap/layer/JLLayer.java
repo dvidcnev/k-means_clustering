@@ -24,7 +24,4 @@ public abstract class JLLayer {
      * Forces the subclasses to implement
      * {@link #JLLayer(WebEngine, JLMapCallbackHandler)} constructor!
      */
-    private JLLayer() {
-        // NO-OP
-    }
 }
