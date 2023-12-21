@@ -14,6 +14,7 @@ public class MainProgram {
 
         final int NumClusters = Integer.valueOf(args[2]);
         final int NumSites = Integer.valueOf(args[3]);
+        int cycles = 0;
 
         // generate random rgb for each cluster (each cluster has an rgb value that is
         // empty initially and can be set )
@@ -22,28 +23,33 @@ public class MainProgram {
 
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
+            // Measure the time
+            long startTime = System.currentTimeMillis();
+
             // the random clusters that get generated
             Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
-            Dataset.printFirstCluster();
             // assign each site to a cluster
             JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
-            Dataset.printFirstCluster();
+            cycles++;
             ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
             // calculate the new center of each cluster
             JSON.calculateNewCenters(Dataset.getClusters());
-            Dataset.printFirstCluster();
-            JSON.printFirstCluster(copiedClusters);
             // assign the cluster to the new centers
             JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
             while (!JSON.clustersAreTheSame(Dataset.getClusters(), copiedClusters)) {
-                JSON.printFirstCluster(copiedClusters);
-                Dataset.printFirstCluster();
+                cycles++;
                 copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
                 // calculate the new center of each cluster
                 JSON.calculateNewCenters(Dataset.getClusters());
                 // assign the cluster to the new centers
                 JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
             }
+            // Measure the time in seconds
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
+            // System.out.println("[SEQUENTIAL] Total time: " + totalTime + "ms");
+            System.out.println("[SEQUENTIAL] Total time: " + totalTime / 1000.0 + "s");
+            System.out.println("[SEQUENTIAL] Total cycles: " + cycles);
         }
 
         if (Boolean.valueOf(args[0])) {

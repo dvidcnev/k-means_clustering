@@ -98,7 +98,6 @@ public class JSON {
     // if a site is closer to a cluster than the other clusters, then assign it to
     // that cluster
     public static void assignSitesToClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
-        System.out.println("Assigning sites to clusters...");
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster closestCluster = null;
@@ -116,7 +115,6 @@ public class JSON {
     // calculate the new center of each cluster ( make sure it's in the center of
     // the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
-        System.out.println("Calculating new centers...");
         for (Cluster cluster : clusters) {
             double sumLatitude = 0;
             double sumLongitude = 0;
@@ -139,7 +137,6 @@ public class JSON {
 
     // assign the cluster to the new centers
     public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
-        System.out.println("Assigning sites to new clusters...");
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster closestCluster = null;
@@ -157,22 +154,19 @@ public class JSON {
 
     // print first cluster in the list of clusters
     public static void printFirstCluster(ArrayList<Cluster> clusters) {
-
         System.out.println("JSON: First cluster: " + clusters.get(0).getLa() + " " + clusters.get(0).getLo());
     }
 
     // check if the clusters are the same for a given new site with new center and
     // another older site provided
     public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
-        double threshold = 0.001; // Set your convergence threshold here
+        double threshold = 0.001;
         for (int i = 0; i < newClusters.size(); i++) {
             double distance = calculateDistanceBetweenCentroids(newClusters.get(i), oldClusters.get(i));
-            if (distance > threshold) {
-                System.out.println("Clusters are not the same!");
+            if (distance > threshold) { // clusters are the same
                 return false;
             }
         }
-        System.out.println("Clusters are the same!");
         return true;
     }
 
