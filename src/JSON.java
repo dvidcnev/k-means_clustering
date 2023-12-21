@@ -2,6 +2,7 @@ package src;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.Random;
 
 public class JSON {
 
-    public static ArrayList<Site> randomPoints(int times) {
+    public static ArrayList<Site> randomizeDataset(int times) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             // Read JSON file into a List of objects
@@ -33,6 +34,72 @@ public class JSON {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // find out the max bound of the capacity in the JSON
+    public static double findMaxCapacity() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Read JSON file into a List of objects
+            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<Site>>() {
+                    });
+            double maxCapacity = 0;
+            for (Site site : objects) {
+                if (site.getCapacity() > maxCapacity) {
+                    maxCapacity = site.getCapacity();
+                }
+            }
+            return maxCapacity;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    // generate random sites around EUROPE with random latitudes and longtiudes
+    // around central europe and the max capacity for each site generated around
+    // europe is a random number between 0 and the max capacity of the dataset
+    public static ArrayList<Site> randomizeEurope(int times) {
+        Random rand = new Random();
+        ArrayList<Site> sites = randomizeDataset(getDatasetSize());
+
+        // Assuming the maximum capacity is set as 100 for example purposes
+        double maxCapacity = findMaxCapacity();
+
+        // Generate random sites around Europe AFTER the whole dataset from europe has
+        // been generated
+        double minLatitude = 36.0;
+        double maxLatitude = 72.0;
+        double minLongitude = -25.0;
+        double maxLongitude = 45.0;
+
+        for (int i = 0; i < times - getDatasetSize(); i++) {
+            double randomLatitude = minLatitude + (maxLatitude - minLatitude) * rand.nextDouble();
+            double randomLongitude = minLongitude + (maxLongitude - minLongitude) * rand.nextDouble();
+            double randomCapacity = 0 + (maxCapacity - 0) * rand.nextDouble();
+            Site site = new Site();
+            site.setLa(randomLatitude);
+            site.setLo(randomLongitude);
+            site.setCapacity(randomCapacity);
+            sites.add(site);
+        }
+        return sites;
+    }
+
+    // get the size of the json dataset ( how many elements in total)
+    public static int getDatasetSize() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Read JSON file into a List of objects
+            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<Site>>() {
+                    });
+            return objects.size();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 
@@ -178,6 +245,7 @@ public class JSON {
     }
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Site {
     private String name;
     private double capacity;
@@ -186,8 +254,16 @@ class Site {
     private Cluster cluster;
 
     // Getters and setters
-    public String getName() {
-        return name;
+    public void setLa(double la) {
+        this.la = String.valueOf(la);
+    }
+
+    public void setLo(double lo) {
+        this.lo = String.valueOf(lo);
+    }
+
+    public void setCapacity(double capacity) {
+        this.capacity = capacity;
     }
 
     public double getCapacity() {
