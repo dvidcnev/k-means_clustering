@@ -2,11 +2,21 @@ package src;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vividsolutions.jts.geom.Coordinate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.geojson.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 
 public class JSON {
 
@@ -63,28 +73,30 @@ public class JSON {
     // europe is a random number between 0 and the max capacity of the dataset
     public static ArrayList<Site> randomizeEurope(int times) {
         Random rand = new Random();
-        ArrayList<Site> sites = randomizeDataset(getDatasetSize());
+        ArrayList<Site> sites = new ArrayList<Site>();
 
         // Assuming the maximum capacity is set as 100 for example purposes
         double maxCapacity = findMaxCapacity();
 
         // Generate random sites around Europe AFTER the whole dataset from europe has
         // been generated
-        double minLatitude = 36.0;
-        double maxLatitude = 72.0;
-        double minLongitude = -25.0;
-        double maxLongitude = 45.0;
+        ArrayList<double[]> randomCoordinates = generateRandomCoordinatesWithinEurope(times);
 
-        for (int i = 0; i < times - getDatasetSize(); i++) {
-            double randomLatitude = minLatitude + (maxLatitude - minLatitude) * rand.nextDouble();
-            double randomLongitude = minLongitude + (maxLongitude - minLongitude) * rand.nextDouble();
-            double randomCapacity = 0 + (maxCapacity - 0) * rand.nextDouble();
+        // Generate random sites around Europe
+        for (int i = 0; i < randomCoordinates.size(); i++) {
+            double randomLatitude = randomCoordinates.get(i)[0];
+            double randomLongitude = randomCoordinates.get(i)[1];
+            double randomCapacity = rand.nextDouble() * maxCapacity;
             Site site = new Site();
             site.setLa(randomLatitude);
             site.setLo(randomLongitude);
             site.setCapacity(randomCapacity);
-            sites.add(site);
+            // check if the coordinate has been added already
+            if (!sites.contains(site)) {
+                sites.add(site);
+            }
         }
+
         return sites;
     }
 
