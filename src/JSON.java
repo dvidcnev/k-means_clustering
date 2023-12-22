@@ -378,7 +378,6 @@ public class JSON {
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class Site {
-    private String name;
     private double capacity;
     private String la;
     private String lo;

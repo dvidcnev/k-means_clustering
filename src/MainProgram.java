@@ -16,9 +16,6 @@ public class MainProgram {
         final int NumSites = Integer.valueOf(args[3]);
         int cycles = 0;
 
-        // generate random rgb for each cluster (each cluster has an rgb value that is
-        // empty initially and can be set )
-
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
             // Measure the time
