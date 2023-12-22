@@ -45,7 +45,7 @@ public class MainProgram {
             // assign each site to a cluster
             JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
 
-            System.out.println("Cycles: " + cycles);
+            System.out.println("Cycle: " + cycles);
             ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
             // calculate the new center of each cluster
             JSON.calculateNewCenters(Dataset.getClusters());
@@ -53,7 +53,7 @@ public class MainProgram {
             JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
             while (!JSON.clustersAreTheSame(Dataset.getClusters(), copiedClusters)) {
                 cycles++;
-                System.out.println("Cycles: " + cycles);
+                System.out.println("Cycle: " + cycles);
 
                 copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
                 // calculate the new center of each cluster
