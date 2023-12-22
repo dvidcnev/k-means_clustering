@@ -1,15 +1,15 @@
 package src;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.*;
+import java.util.*;
 
 public class JSON {
 
-    public static ArrayList<Site> randomPoints(int times) {
+    public static ArrayList<Site> randomizeDataset(int times) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             // Read JSON file into a List of objects
@@ -33,6 +33,204 @@ public class JSON {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // generate random coordinates within europe that are in the geo json SHAPE
+    // POLYGON ( only on landmass )
+    // Assume methods for parsing GeoJSON and extracting country polygons are
+    // present
+
+    // Extract polygon coordinates from GeoJSON
+    private static List<List<List<Double>>> extractPolygons(JsonNode root) {
+        List<List<List<Double>>> polygons = new ArrayList<>();
+
+        // Assuming GeoJSON structure has 'features' containing polygons
+        JsonNode features = root.path("features");
+        for (JsonNode feature : features) {
+            JsonNode geometry = feature.path("geometry");
+            String type = geometry.path("type").asText();
+
+            // Extract coordinates of polygons
+            if ("Polygon".equals(type)) {
+                polygons.add(extractPolygonCoordinates(geometry.path("coordinates")));
+            } else if ("MultiPolygon".equals(type)) {
+                JsonNode coordinates = geometry.path("coordinates");
+                for (JsonNode polygonCoords : coordinates) {
+                    polygons.add(extractPolygonCoordinates(polygonCoords));
+                }
+            }
+        }
+        return polygons;
+    }
+
+    // Extract coordinates of a single polygon
+    private static List<List<Double>> extractPolygonCoordinates(JsonNode coordinates) {
+        List<List<Double>> polygon = new ArrayList<>();
+        for (JsonNode coord : coordinates) {
+            for (JsonNode point : coord) {
+                List<Double> innerPolygon = new ArrayList<>();
+                innerPolygon.add(point.get(0).asDouble()); // longitude
+                innerPolygon.add(point.get(1).asDouble()); // latitude
+                polygon.add(innerPolygon);
+            }
+        }
+        return polygon;
+    }
+
+    // Generate random coordinate within a polygon
+    private static List<Double> generateRandomCoordinate(List<List<List<Double>>> polygons) {
+        Random rand = new Random();
+        List<List<Double>> polygon = polygons.get(rand.nextInt(polygons.size()));
+
+        // Find bounding box of polygon
+        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE, maxY = Double.MIN_VALUE;
+
+        for (List<Double> point : polygon) {
+            double x = point.get(0);
+            double y = point.get(1);
+
+            if (x < minX)
+                minX = x;
+            if (x > maxX)
+                maxX = x;
+            if (y < minY)
+                minY = y;
+            if (y > maxY)
+                maxY = y;
+        }
+
+        // Generate random longitude and latitude within bounding box
+        double randomLon, randomLat;
+        do {
+            randomLon = minX + (maxX - minX) * rand.nextDouble();
+            randomLat = minY + (maxY - minY) * rand.nextDouble();
+        } while (!isPointInPolygon(randomLon, randomLat, polygon));
+
+        List<Double> randomCoordinate = new ArrayList<>();
+        randomCoordinate.add(randomLat);
+        randomCoordinate.add(randomLon);
+
+        return randomCoordinate;
+    }
+
+    // Check if a point is within a polygon using ray casting algorithm
+    private static boolean isPointInPolygon(double lon, double lat, List<List<Double>> polygon) {
+        int i, j;
+        boolean c = false;
+        int n = polygon.size();
+
+        for (i = 0, j = n - 1; i < n; j = i++) {
+            double xi = polygon.get(i).get(0);
+            double yi = polygon.get(i).get(1);
+            double xj = polygon.get(j).get(0);
+            double yj = polygon.get(j).get(1);
+
+            if (((yi > lat) != (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+                c = !c;
+            }
+        }
+        return c;
+    }
+
+    public static ArrayList<double[]> generateLatLon(int times) {
+        File geoJSONFile = new File("europe.geo.json");
+
+        try {
+            // Parse GeoJSON using Jackson library
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode root = objectMapper.readTree(geoJSONFile);
+
+            // Extract polygon coordinates
+            List<List<List<Double>>> polygons = extractPolygons(root);
+
+            ArrayList<double[]> latLon = new ArrayList<>();
+
+            for (int i = 0; i < times; i++) {
+                List<Double> randomCoordinate = generateRandomCoordinate(polygons);
+                double[] latLonArray = new double[2];
+                latLonArray[0] = randomCoordinate.get(0);
+                latLonArray[1] = randomCoordinate.get(1);
+                // check if coordinates exist, if not add to list
+                if (!latLon.contains(latLonArray)) {
+                    latLon.add(latLonArray);
+                }
+
+            }
+            return latLon;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // generate random sites around EUROPE with random latitudes and longtiudes
+    // around central europe and the max capacity for each site generated around
+    // europe is a random number between 0 and the max capacity of the dataset
+    public static ArrayList<Site> randomizeEurope(int times) {
+        Random rand = new Random();
+        ArrayList<Site> sites = new ArrayList<Site>();
+
+        // Assuming the maximum capacity is set as 100 for example purposes
+        double maxCapacity = findMaxCapacity();
+
+        // Generate random sites around Europe AFTER the whole dataset from europe has
+        // been generated
+        ArrayList<double[]> randomCoordinates = generateLatLon(times);
+
+        // Generate random sites around Europe
+        for (int i = 0; i < randomCoordinates.size(); i++) {
+            double randomLatitude = randomCoordinates.get(i)[0];
+            double randomLongitude = randomCoordinates.get(i)[1];
+            double randomCapacity = rand.nextDouble() * maxCapacity;
+            Site site = new Site();
+            site.setLa(randomLatitude);
+            site.setLo(randomLongitude);
+            site.setCapacity(randomCapacity);
+            // check if the coordinate has been added already
+            if (!sites.contains(site)) {
+                sites.add(site);
+            }
+        }
+
+        return sites;
+    }
+
+    // find out the max bound of the capacity in the JSON
+    public static double findMaxCapacity() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Read JSON file into a List of objects
+            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<Site>>() {
+                    });
+            double maxCapacity = 0;
+            for (Site site : objects) {
+                if (site.getCapacity() > maxCapacity) {
+                    maxCapacity = site.getCapacity();
+                }
+            }
+            return maxCapacity;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    // get the size of the json dataset ( how many elements in total)
+    public static int getDatasetSize() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Read JSON file into a List of objects
+            ArrayList<Site> objects = objectMapper.readValue(new File("germany.json"),
+                    new TypeReference<ArrayList<Site>>() {
+                    });
+            return objects.size();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 
@@ -178,6 +376,7 @@ public class JSON {
     }
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Site {
     private String name;
     private double capacity;
@@ -186,8 +385,16 @@ class Site {
     private Cluster cluster;
 
     // Getters and setters
-    public String getName() {
-        return name;
+    public void setLa(double la) {
+        this.la = String.valueOf(la);
+    }
+
+    public void setLo(double lo) {
+        this.lo = String.valueOf(lo);
+    }
+
+    public void setCapacity(double capacity) {
+        this.capacity = capacity;
     }
 
     public double getCapacity() {

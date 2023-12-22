@@ -19,18 +19,27 @@ public class MainProgram {
         // generate random rgb for each cluster (each cluster has an rgb value that is
         // empty initially and can be set )
 
-        Dataset.setSites(JSON.randomPoints(NumSites));
-
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
             // Measure the time
             long startTime = System.currentTimeMillis();
 
+            // if numsites is less or equal to the provided dataset, generate with dataset
+            // size
+            if (NumSites <= JSON.getDatasetSize()) {
+                // generate random sites
+                Dataset.setSites(JSON.randomizeDataset(NumSites));
+            } else {
+                // generate random sites around EUROPE
+                Dataset.setSites(JSON.randomizeEurope(NumSites));
+            }
+
             // the random clusters that get generated
             Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
             // assign each site to a cluster
             JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
-            cycles++;
+
+            System.out.println("Cycles: " + cycles);
             ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
             // calculate the new center of each cluster
             JSON.calculateNewCenters(Dataset.getClusters());
@@ -38,6 +47,8 @@ public class MainProgram {
             JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
             while (!JSON.clustersAreTheSame(Dataset.getClusters(), copiedClusters)) {
                 cycles++;
+                System.out.println("Cycles: " + cycles);
+
                 copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
                 // calculate the new center of each cluster
                 JSON.calculateNewCenters(Dataset.getClusters());
