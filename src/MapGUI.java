@@ -4,6 +4,7 @@ package src;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart.Data;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.paint.Color;
@@ -72,20 +73,20 @@ public class MapGUI extends Application {
 
                                 JLBounds bounds = JLBounds.builder()
                                                 .southWest(JLLatLng.builder()
-                                                                .lat(47)
-                                                                .lng(3)
+                                                                .lat(Dataset.southwestBound[0])
+                                                                .lng(Dataset.southwestBound[1])
                                                                 .build())
                                                 .northEast(JLLatLng.builder()
-                                                                .lat(55.5)
-                                                                .lng(18)
+                                                                .lat(Dataset.northeastBound[0])
+                                                                .lng(Dataset.northeastBound[1])
                                                                 .build())
                                                 .build();
                                 // map zoom functionalities
                                 map.getControlLayer().setMaxBounds(bounds);
-                                map.getControlLayer().setZoom(6);
+                                map.getControlLayer().setZoom(Dataset.Zoom);
                                 map.getControlLayer().zoomIn(2);
                                 map.getControlLayer().zoomOut(1);
-                                map.getControlLayer().setMinZoom(6);
+                                map.getControlLayer().setMinZoom(Dataset.minZoom);
 
                         }
 

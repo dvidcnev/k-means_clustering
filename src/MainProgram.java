@@ -31,6 +31,15 @@ public class MainProgram {
                 Dataset.setSites(JSON.randomizeDataset(NumSites));
             } else {
                 // generate random sites around EUROPE
+                // change the zoom value and the south east and north west bounds in Dataset
+                // class
+                Dataset.minZoom = 4;
+                Dataset.Zoom = 4;
+                Dataset.southwestBound[0] = 30.86166;
+                Dataset.southwestBound[1] = -17.005859;
+                Dataset.northeastBound[0] = 62.239811;
+                Dataset.northeastBound[1] = 34.317188;
+
                 Dataset.setSites(JSON.randomizeEurope(NumSites));
             }
 
