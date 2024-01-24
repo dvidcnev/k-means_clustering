@@ -101,7 +101,7 @@
             <configuration>
                 <mainClass>MainProgram</mainClass>
                  <exec.args>
-         --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED 
+        --module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web
         %classpath
     </exec.args>
             </configuration>
