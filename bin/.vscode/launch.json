@@ -14,8 +14,8 @@
             "args": [
                 "true",  // true for GUI, false for no gui ( console gets shown anyway )
                 "0", // 0 for sequential, 1 for parallel and 2 for distributed ( 1 and 2 aren't distributed )
-                "100", // number of centers
-                "5000" // number of facilities generated ( randomly )
+                "10", // number of centers
+                "15000" // number of facilities generated ( randomly )
             ]
 
         },

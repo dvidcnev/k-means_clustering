@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MainProgram",
+            "request": "launch",
+            "mainClass": "src.MainProgram",
+            "projectName": "K-Means Clustering_2a3375e2",
+            "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
+            "args": [
+                "true",  // true for GUI, false for no gui ( console gets shown anyway )
+                "0", // 0 for sequential, 1 for parallel and 2 for distributed ( 1 and 2 aren't distributed )
+                "10", // number of centers
+                "15000" // number of facilities generated ( randomly )
+            ]
+
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}
