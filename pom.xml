@@ -100,7 +100,10 @@
             </executions>
             <configuration>
                 <mainClass>MainProgram</mainClass>
-                <commandlineArgs>--module-path /path/to/javafx-sdk-11/lib --add-modules javafx.controls,javafx.fxml,javafx.web</commandlineArgs>
+                 <exec.args>
+         --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED 
+        %classpath
+    </exec.args>
             </configuration>
         </plugin>
       <plugin>
