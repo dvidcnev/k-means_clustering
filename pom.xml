@@ -38,7 +38,7 @@
       <version>2.16.0</version>
     </dependency>
     <dependency>
-      <groupId>io.github.makbn</groupId>
+      <groupId>io.</groupId>
       <artifactId>jlmap</artifactId>
       <version>1.9.4</version>
     </dependency>
