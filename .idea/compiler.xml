@@ -13,7 +13,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="K-Means Clustering" />
+        <module name="k-means-clustering" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
