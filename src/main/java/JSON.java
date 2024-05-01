@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
 public class JSON {
 
@@ -309,6 +313,37 @@ public class JSON {
         }
     }
 
+    public static void assignSitesToNewClustersParallel(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()); // Use available cores
+        List<Future<?>> futures = new ArrayList<>();
+    
+        for (Site site : sites) {
+            futures.add(executor.submit(() -> {
+                double minDistance = Double.MAX_VALUE;
+                Cluster closestCluster = null;
+                for (Cluster cluster : clusters) {
+                    double distance = calculateDistance(site, cluster);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestCluster = cluster;
+                    }
+                }
+                site.setCluster(closestCluster);
+            }));
+        }
+    
+        // Wait for all tasks to complete
+        for (Future<?> future : futures) {
+            try {
+                future.get(); // This will block until the task completes
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executor.shutdown(); // Shut down the executor service
+    }
+    
+
     // calculate the new center of each cluster ( make sure it's in the center of
     // the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
@@ -331,6 +366,41 @@ public class JSON {
             }
         }
     }
+
+    public static void calculateNewCentersParallel(ArrayList<Cluster> clusters) {
+    ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()); // Use available cores
+    List<Future<?>> futures = new ArrayList<>();
+
+    for (Cluster cluster : clusters) {
+        futures.add(executor.submit(() -> {
+            double sumLatitude = 0;
+            double sumLongitude = 0;
+            int numSites = 0;
+            for (Site site : Dataset.getSites()) {
+                if (site.getCluster().equals(cluster)) {
+                    sumLatitude += Double.valueOf(site.getLa());
+                    sumLongitude += Double.valueOf(site.getLo());
+                    numSites++;
+                }
+            }
+            if (numSites != 0) { // Avoid division by zero
+                cluster.setLa(sumLatitude / numSites);
+                cluster.setLo(sumLongitude / numSites);
+            }
+        }));
+    }
+
+        // Wait for all tasks to complete
+        for (Future<?> future : futures) {
+            try {
+                future.get(); // This will block until the task completes
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executor.shutdown(); // Shut down the executor service
+    }
+
 
     // assign the cluster to the new centers
     public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {

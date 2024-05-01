@@ -15,34 +15,38 @@ public class MainProgram {
         final int NumSites = Integer.valueOf(args[3]);
         int cycles = 0;
 
+        // if numsites is less or equal to the provided dataset, generate with dataset
+        // size
+        if (NumSites <= JSON.getDatasetSize()) {
+            // generate random sites
+            Dataset.setSites(JSON.randomizeDataset(NumSites));
+        } else {
+            // generate random sites around EUROPE
+            // change the zoom value and the south east and north west bounds in Dataset
+            // class
+            Dataset.minZoom = 4;
+            Dataset.Zoom = 4;
+            Dataset.southwestBound[0] = 30.86166;
+            Dataset.southwestBound[1] = -17.005859;
+            Dataset.northeastBound[0] = 62.239811;
+            Dataset.northeastBound[1] = 34.317188;
+
+            Dataset.setSites(JSON.randomizeEurope(NumSites));
+        }
+        // the random clusters that get generated
+        Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
+        // assign each site to a cluster
+        JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
+
         // SEQUENTIAL
         if (Integer.valueOf(args[1]) == 0) {
+            cycles = 0;
             // Measure the time
             long startTime = System.currentTimeMillis();
 
-            // if numsites is less or equal to the provided dataset, generate with dataset
-            // size
-            if (NumSites <= JSON.getDatasetSize()) {
-                // generate random sites
-                Dataset.setSites(JSON.randomizeDataset(NumSites));
-            } else {
-                // generate random sites around EUROPE
-                // change the zoom value and the south east and north west bounds in Dataset
-                // class
-                Dataset.minZoom = 4;
-                Dataset.Zoom = 4;
-                Dataset.southwestBound[0] = 30.86166;
-                Dataset.southwestBound[1] = -17.005859;
-                Dataset.northeastBound[0] = 62.239811;
-                Dataset.northeastBound[1] = 34.317188;
 
-                Dataset.setSites(JSON.randomizeEurope(NumSites));
-            }
-
-            // the random clusters that get generated
-            Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
-            // assign each site to a cluster
-            JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
+            
+            
 
             System.out.println("Cycle: " + cycles);
             ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
@@ -67,7 +71,31 @@ public class MainProgram {
             System.out.println("[SEQUENTIAL] Total time: " + totalTime / 1000.0 + "s");
             System.out.println("[SEQUENTIAL] Total cycles: " + cycles);
         }
+        if (Integer.valueOf(args[1]) == 1) {
+            cycles = 0;
+            // MEASURE THE TIME
+            long startTime = System.currentTimeMillis();
 
+            while (true) {
+                cycles++;
+                ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
+                JSON.calculateNewCentersParallel(Dataset.getClusters());
+                JSON.assignSitesToNewClustersParallel(Dataset.getSites(), Dataset.getClusters()); 
+                if (JSON.clustersAreTheSame(Dataset.getClusters(), copiedClusters)) {
+                    break;
+                }
+                System.out.println("Cycle: " + cycles);
+            }
+
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
+
+            System.out.println("[PARALLEL] Total time: " + totalTime / 1000.0 + "s");
+            System.out.println("[PARALLEL] Total cycles: " + cycles);
+        }
+
+
+        // IF TRUE, DRAW GUI MAP
         if (Boolean.valueOf(args[0])) {
             for (Cluster clr : Dataset.getClusters()) {
                 clr.setRGB(

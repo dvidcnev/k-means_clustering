@@ -13,25 +13,11 @@
             "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
             "args": [
                 "true",
-                "0",
-                "10",
-                "100"
+                "1",
+                "50",
+                "5000"
             ]
         },
-        // {
-        //     "type": "java",
-        //     "name": "MainProgram",
-        //     "request": "launch",
-        //     "mainClass": "src.MainProgram",
-        //     "projectName": "K-Means Clustering_2a3375e2",
-        //     "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web",
-        //     "args": [
-        //         "true",
-        //         "0",
-        //         "10",
-        //         "15000"
-        //     ]
-        // },
         {
             "type": "java",
             "name": "Current File",
