@@ -4,7 +4,7 @@ import mpi.*;
 import java.util.List;
 
 
-public class Scanning {
+public class K_means_clustering {
 
     public static void main(String[] args) {
         
@@ -79,6 +79,7 @@ public class Scanning {
 
             while (true) {
                 cycles++;
+                
                 ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
                 JSON.calculateNewCenters(Dataset.getClusters());
                 JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
@@ -129,17 +130,34 @@ public class Scanning {
                 ArrayList<Cluster> copiedClusters = Distributive.deepCopyClusters(Dataset.getClusters());
 
                 long startTime = System.currentTimeMillis();
+                long measurementS=0;
+                long measurementE=0;
         
                 while (!converged) {
                     cycles++;
         
                     // System.out.println("Calculating new centers");
+                    measurementS=   System.currentTimeMillis();
                     Distributive.calculateNewCenters(Dataset.getClusters());
+                    measurementE=   System.currentTimeMillis();
+                    if ( rank ==0) {
+                        System.out.println("Time to calculate new centers: " + (measurementE-measurementS)/1000.0 + "s");
+                    }
                     // System.out.println("Assigning sites to new clusters");
+                    measurementS=   System.currentTimeMillis();
                     Distributive.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
+                    measurementE=   System.currentTimeMillis();
+                    if ( rank ==0) {
+                        System.out.println("Time to assign sites to new clusters: " + (measurementE-measurementS)/1000.0 + "s");
+                    }
                     // System.out.println("Checking if clusters are the same");
+                    measurementS=   System.currentTimeMillis();
                     converged = Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters);
-        
+                    measurementE=   System.currentTimeMillis();
+                    if ( rank ==0) {
+                        System.out.println("Time to check if clusters are the same: " + (measurementE-measurementS)/1000.0 + "s");
+                    }
+
                     if (rank == 0) {
                         System.out.println("Cycle: " + cycles);
                     }

@@ -184,7 +184,7 @@
             <argument>-Dlog4j.configuration=file:src/main/resources/log4j.properties</argument>
             <argument>-cp</argument>
             <classpath />
-            <argument>Scanning</argument>
+            <argument>K_means_clustering</argument>
           </arguments>
         </configuration>
       </plugin>
@@ -212,7 +212,7 @@
           </filters>
           <transformers>
             <transformer>
-              <mainClass>Scanning</mainClass>
+              <mainClass>K_means_clustering</mainClass>
             </transformer>
           </transformers>
         </configuration>
