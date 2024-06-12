@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MainProgram",
+            "request": "launch",
+            "mainClass": "MainProgram",
+            "projectName": "k-means-clustering",
+            "vmArgs": "--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/sun.security.action=ALL-UNNAMED -Dlog4j.configuration=file:src/main/resources/log4j.properties",
+            // "args": [
+                //  "4",
+            //     "false",
+            //     "2",
+            //     "100",
+            //     "10000"
+            // ]
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}

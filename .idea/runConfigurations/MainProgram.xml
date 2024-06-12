@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MainProgram" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="/usr/lib/jvm/java-1.17.0-openjdk-amd64" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="MainProgram" />
+    <module name="k-means-clustering" />
+    <option name="PROGRAM_PARAMETERS" value="true 0 10 100" />
+    <option name="VM_PARAMETERS" value="--module-path ./javafx --add-exports javafx.web/com.sun.javafx.webkit=ALL-UNNAMED --add-modules=javafx.graphics,javafx.web -jar $PROJECT_DIR$/../../../../Desktop/Projects/K-Means Clustering/lib/starter.jar" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

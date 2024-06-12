@@ -1,0 +1,11 @@
+{
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+       
+    ],
+    "java.project.sourcePaths": [
+        "./src"
+    ],
+    "java.project.explorer.showNonJavaResources": true,
+    "java.configuration.updateBuildConfiguration": "automatic"
+}
