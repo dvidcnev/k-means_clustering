@@ -1,9 +1,5 @@
 
 import java.util.ArrayList;
-
-
-
-
 import mpi.*;
 import java.util.List;
 
@@ -12,17 +8,18 @@ public class Scanning {
 
     public static void main(String[] args) {
         
-        int cycles = 0;
+        // Parameters passed to the program from the run.sh script
+        int cycles;
         boolean DrawMap = false;
-        int mode = 2;
-        int NumClusters = 10;
-        int NumSites = 1000;
+        int mode = 0;
+        int NumClusters = 1;
+        int NumSites = 1;
 
         // Lists to hold custom and MPI arguments separately
         List<String> customArgs = new ArrayList<>();
         List<String> mpiArgs = new ArrayList<>();
 
-        // Separate arguments
+        // A switch case where we go through the arguments and assign them to the correct variables
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--DrawMap":
@@ -54,15 +51,12 @@ public class Scanning {
         // Convert mpiArgs to an array
         String[] mpiArgsArray = mpiArgs.toArray(new String[0]);
 
-
         // if numsites is less or equal to the provided dataset, generate with dataset size
         if (NumSites <= JSON.getDatasetSize()) {
             // generate random sites
             Dataset.setSites(JSON.randomizeDataset(NumSites));
         } else {
-            // generate random sites around EUROPE
-            // change the zoom value and the south east and north west bounds in Dataset
-            // class
+            // generate random sites around europe, and set the min and max zoom levels, also set the bounds for geographical map
             Dataset.minZoom = 4;
             Dataset.Zoom = 4;
             Dataset.southwestBound[0] = 30.86166;
@@ -93,7 +87,6 @@ public class Scanning {
                 }
                 System.out.println("Cycle: " + cycles);
             }
-            // Measure the time in seconds
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
             // System.out.println("[SEQUENTIAL] Total time: " + totalTime + "ms");
@@ -129,7 +122,9 @@ public class Scanning {
             try {
                 cycles = 0;
                 boolean converged = false;
-                int rank = MPI.COMM_WORLD.Rank(); // Get the rank of the current processor
+
+                // this is so we can get the rank and use it for sequential needs
+                int rank = MPI.COMM_WORLD.Rank(); 
         
                 ArrayList<Cluster> copiedClusters = Distributive.deepCopyClusters(Dataset.getClusters());
 
