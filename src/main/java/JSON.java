@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
+import mpi.*;
 
 public class JSON {
 
@@ -307,22 +308,6 @@ public class JSON {
         return copiedClusters;
     }
 
-    // if a site is closer to a cluster than the other clusters, then assign it to
-    // that cluster
-    public static void assignSitesToClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
-        for (Site site : sites) {
-            double minDistance = Double.MAX_VALUE;
-            Cluster closestCluster = null;
-            for (Cluster cluster : clusters) {
-                double distance = calculateDistance(site, cluster);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestCluster = cluster;
-                }
-            }
-            site.setCluster(closestCluster);
-        }
-    }
 
        // assign the cluster to the new centers
        public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
@@ -487,17 +472,7 @@ class Parallel {
 
 }
 class Distributive {
-
-    public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> originalClusters) {
-        ArrayList<Cluster> copiedClusters = new ArrayList<>();
-        for (Cluster cluster : originalClusters) {
-            Cluster copiedCluster = new Cluster(cluster.getLa(), cluster.getLo());
-            copiedCluster.setId(cluster.getId());
-            // copiedCluster.setRGB(cluster.getRGB()); // Assuming RGB is immutable or handled elsewhere
-            copiedClusters.add(copiedCluster);
-        }
-        return copiedClusters;
-    }
+    
 
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
         for (Cluster cluster : clusters) {
@@ -519,13 +494,14 @@ class Distributive {
             }
         }
     }
+    
     public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster nearestCluster = null;
 
             for (Cluster cluster : clusters) {
-                double distance = calculateDistance(site.getLa(), site.getLo(), cluster.getLa(), cluster.getLo());
+                double distance = calculateDistance(Double.parseDouble(site.getLa()), Double.parseDouble(site.getLo()), cluster.getLa(), cluster.getLo());
                 if (distance < minDistance) {
                     minDistance = distance;
                     nearestCluster = cluster;
@@ -538,24 +514,9 @@ class Distributive {
         }
     }
 
-    private static double calculateDistance(String la1, String lo1, double la2, double lo2) {
-        double latitude1 = Double.parseDouble(la1);
-        double longitude1 = Double.parseDouble(lo1);
-        double latitude2 = la2;
-        double longitude2 = lo2;
-
-        double earthRadius = 6371; // km
-        double dLat = Math.toRadians(latitude2 - latitude1);
-        double dLng = Math.toRadians(longitude2 - longitude1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + 
-                    Math.cos(Math.toRadians(latitude1)) * Math.cos(Math.toRadians(latitude2)) * 
-                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = earthRadius * c;
-
-        return distance;
+    public static double calculateDistance(double la1, double lo1, double la2, double lo2) {
+        return Math.sqrt(Math.pow(la1 - la2, 2) + Math.pow(lo1 - lo2, 2));
     }
-
 
     public static boolean clustersAreTheSame(ArrayList<Cluster> clusters1, ArrayList<Cluster> clusters2) {
         if (clusters1.size() != clusters2.size()) {
@@ -573,5 +534,22 @@ class Distributive {
         }
 
         return true;
+    }
+}
+
+class Utils {
+    public static byte[] serializeObject(Object obj) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream out = new ObjectOutputStream(bos)) {
+            out.writeObject(obj);
+            return bos.toByteArray();
+        }
+    }
+
+    public static Object deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+             ObjectInputStream in = new ObjectInputStream(bis)) {
+            return in.readObject();
+        }
     }
 }

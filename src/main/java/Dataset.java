@@ -1,6 +1,8 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -41,12 +43,12 @@ class Site implements Serializable {
     private Cluster cluster;
 
     // Getters and setters
-    public void setLa(double la) {
-        this.la = String.valueOf(la);
+    public void setLa(double randomLatitude) {
+        this.la = String.valueOf(randomLatitude);
     }
 
-    public void setLo(double lo) {
-        this.lo = String.valueOf(lo);
+    public void setLo(double randomLongitude) {
+        this.lo = String.valueOf(randomLongitude);
     }
 
     public void setCapacity(double capacity) {
@@ -73,23 +75,6 @@ class Site implements Serializable {
         this.cluster = cluster;
     }
     
-    public static double[] serializeSite(Site site) {
-        double[] data = new double[4];
-        data[0] = Double.parseDouble(site.getLa());
-        data[1] = Double.parseDouble(site.getLo());
-        data[2] = site.getCapacity();
-        data[3] = site.getCluster() != null ? site.getCluster().getId() : -1; // Use -1 if cluster is null
-        return data;
-    }
-    
-    public static Site deserializeSite(double[] data) {
-        Site site = new Site();
-        site.setLa(data[0]);
-        site.setLo(data[1]);
-        site.setCapacity(data[2]);
-        // Cluster needs to be set separately after deserialization
-        return site;
-    }
 }
 
 class Cluster implements Serializable {
@@ -146,19 +131,7 @@ class Cluster implements Serializable {
         this.Longitude = center[1];
     }
 
-    public static double[] serializeCluster(Cluster cluster) {
-        double[] data = new double[4];
-        data[0] = cluster.getLa();
-        data[1] = cluster.getLo();
-        data[3] = cluster.getId();
-        return data;
-    }
 
-    public static Cluster deserializeCluster(double[] data) {
-        Cluster cluster = new Cluster(data[0], data[1]);
-        cluster.setId((int) data[3]);
-        return cluster;
-    }
 }
 
 

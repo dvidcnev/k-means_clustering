@@ -1,4 +1,5 @@
 
+import java.io.IOException;
 import java.util.ArrayList;
 import mpi.*;
 import java.util.List;
@@ -69,7 +70,7 @@ public class K_means_clustering {
         // the random clusters that get generated
         Dataset.setClusters(JSON.randomClusters(NumClusters, Dataset.getSites()));
         // assign each site to a cluster
-        JSON.assignSitesToClusters(Dataset.getSites(), Dataset.getClusters());
+        JSON.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
 
         // SEQUENTIAL
         if (mode == 0) {
@@ -118,61 +119,57 @@ public class K_means_clustering {
             System.out.println("[PARALLEL] Total cycles: " + cycles);
         }
         // DISTRIBUTED
+    
         if (mode == 2) {
             MPI.Init(mpiArgsArray);
-            try {
                 cycles = 0;
                 boolean converged = false;
 
-                // this is so we can get the rank and use it for sequential needs
-                int rank = MPI.COMM_WORLD.Rank(); 
-        
-                ArrayList<Cluster> copiedClusters = Distributive.deepCopyClusters(Dataset.getClusters());
+                int rank = MPI.COMM_WORLD.Rank();
+
+                ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
 
                 long startTime = System.currentTimeMillis();
-                long measurementS=0;
-                long measurementE=0;
-        
+                long measurementS = 0;
+                long measurementE = 0;
+
                 while (!converged) {
                     cycles++;
-        
-                    // System.out.println("Calculating new centers");
-                    measurementS=   System.currentTimeMillis();
+
+                    measurementS = System.currentTimeMillis();
                     Distributive.calculateNewCenters(Dataset.getClusters());
-                    measurementE=   System.currentTimeMillis();
-                    if ( rank ==0) {
-                        System.out.println("Time to calculate new centers: " + (measurementE-measurementS)/1000.0 + "s");
+                    measurementE = System.currentTimeMillis();
+                    if (rank == 0) {
+                        System.out.println("Time to calculate new centers: " + (measurementE - measurementS) / 1000.0 + "s");
                     }
-                    // System.out.println("Assigning sites to new clusters");
-                    measurementS=   System.currentTimeMillis();
+
+                    measurementS = System.currentTimeMillis();
                     Distributive.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
-                    measurementE=   System.currentTimeMillis();
-                    if ( rank ==0) {
-                        System.out.println("Time to assign sites to new clusters: " + (measurementE-measurementS)/1000.0 + "s");
+                    measurementE = System.currentTimeMillis();
+                    if (rank == 0) {
+                        System.out.println("Time to assign sites to new clusters: " + (measurementE - measurementS) / 1000.0 + "s");
                     }
-                    // System.out.println("Checking if clusters are the same");
-                    measurementS=   System.currentTimeMillis();
+
+                    measurementS = System.currentTimeMillis();
                     converged = Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters);
-                    measurementE=   System.currentTimeMillis();
-                    if ( rank ==0) {
-                        System.out.println("Time to check if clusters are the same: " + (measurementE-measurementS)/1000.0 + "s");
+                    measurementE = System.currentTimeMillis();
+                    if (rank == 0) {
+                        System.out.println("Time to check if clusters are the same: " + (measurementE - measurementS) / 1000.0 + "s");
                     }
 
                     if (rank == 0) {
                         System.out.println("Cycle: " + cycles);
                     }
-        
-                    // Update copiedClusters with the new clusters
-                    copiedClusters = Distributive.deepCopyClusters(Dataset.getClusters());
+
+                    copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
                 }
+
                 long endTime = System.currentTimeMillis();
-                if ( rank == 0 ) {
+                if (rank == 0) {
                     System.out.println("[DISTRIBUTED] Total time: " + (endTime - startTime) / 1000.0 + "s");
                     System.out.println("[DISTRIBUTED] Total cycles: " + cycles);
                 }
-            } finally {
                 MPI.Finalize();
-            }
         }
         
                 
