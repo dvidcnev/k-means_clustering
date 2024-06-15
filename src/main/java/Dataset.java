@@ -1,9 +1,6 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import mpi.*;
@@ -118,7 +115,6 @@ public class Dataset {
     public static void initializeClustersForProcessors() {
         try {
             int id = MPI.COMM_WORLD.Rank();
-            int size = MPI.COMM_WORLD.Size();
     
             ArrayList<Cluster> clusters = null;
             ArrayList<Site> sites = null;

@@ -237,9 +237,7 @@ public class JSON {
         }
     }
 
-    // with the given clusters ( amount of clusters ), assign points to each with
-    // random
-    // coordinates
+    // with the given clusters ( amount of clusters ), assign points to each with random coordinates
     public static ArrayList<Cluster> randomClusters(int numClusters, ArrayList<Site> sites) {
         if (sites.size() < numClusters) {
             throw new IllegalArgumentException("Number of clusters cannot exceed number of sites");
@@ -247,13 +245,14 @@ public class JSON {
     
         ArrayList<Cluster> clusters = new ArrayList<>();
         Random rand = new Random();
-        Set<Integer> usedIndices = new HashSet<>(); // To track already used site indices
+        Set<Integer> usedIndices = new HashSet<>(); 
     
+        // Generate random clusters
         while (clusters.size() < numClusters) {
             int randomIndex;
             do {
                 randomIndex = rand.nextInt(sites.size());
-            } while (usedIndices.contains(randomIndex)); // Ensure unique site selection
+            } while (usedIndices.contains(randomIndex)); 
     
             usedIndices.add(randomIndex);
             Site site = sites.get(randomIndex);
@@ -268,9 +267,7 @@ public class JSON {
         return clusters;
     }
     
-
-    // make each cluster have an RGB value ( for the color ) and make sure that the
-    // rgb sticks for that index of the cluster
+    // make each cluster have an RGB value ( for the color ) and make sure that the rgb sticks for that index of the cluster
     public static ArrayList<RGB> randomRGB(int numClusters) {
         ArrayList<RGB> rgb = new ArrayList<RGB>();
         Random rand = new Random();
@@ -286,17 +283,7 @@ public class JSON {
         return rgb;
     }
 
-    // Calculate the distance of a site between all the clusters
-    public static double calculateDistance(Site site, Cluster cluster) {
-        double siteLatitude = Double.valueOf(site.getLa());
-        double siteLongitude = Double.valueOf(site.getLo());
-        double clusterLatitude = cluster.getLa();
-        double clusterLongitude = cluster.getLo();
-        double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
-                + Math.pow((siteLongitude - clusterLongitude), 2));
-        return distance;
-    }
-
+    // copy clusters into a new set of memory so they don't overwrite existing clusters in Dataset
     public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
         ArrayList<Cluster> copiedClusters = new ArrayList<>();
         for (Cluster cluster : clusters) {
@@ -308,9 +295,8 @@ public class JSON {
         return copiedClusters;
     }
 
-
-       // assign the cluster to the new centers
-       public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+    // assign the cluster to the new centers
+    public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
             Cluster closestCluster = null;
@@ -326,10 +312,7 @@ public class JSON {
         Dataset.setSites(sites);
     }
 
-
-
-    // calculate the new center of each cluster ( make sure it's in the center of
-    // the sites that it contains)
+    // calculate the new center of each cluster ( make sure it's in the center of the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
         for (Cluster cluster : clusters) {
             double sumLatitude = 0;
@@ -343,20 +326,29 @@ public class JSON {
                     numSites++;
                 }
             }
-            if (numSites != 0) { // Avoid division by zero
-                // Update the coordinates in the actual clusters list
+            if (numSites != 0) {
                 cluster.setLa(sumLatitude / numSites);
                 cluster.setLo(sumLongitude / numSites);
             }
         }
     }
 
-    
-
+    // calculate the distance between the centroids of two clusters
     public static double calculateDistanceBetweenCentroids(Cluster cluster1, Cluster cluster2) {
         double latDiff = cluster1.getLa() - cluster2.getLa();
         double lonDiff = cluster1.getLo() - cluster2.getLo();
         return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+    }
+
+    // Calculate the distance of a site between all the clusters
+    public static double calculateDistance(Site site, Cluster cluster) {
+        double siteLatitude = Double.valueOf(site.getLa());
+        double siteLongitude = Double.valueOf(site.getLo());
+        double clusterLatitude = cluster.getLa();
+        double clusterLongitude = cluster.getLo();
+        double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
+                + Math.pow((siteLongitude - clusterLongitude), 2));
+        return distance;
     }
 
 
@@ -371,8 +363,6 @@ public class JSON {
         }
         return true;
     }
-
-    
     
 }
 
@@ -384,19 +374,20 @@ class Parallel {
     
         // Use parallelStream for concurrent processing
         clusters.parallelStream()
-                .map(cluster -> new Cluster(cluster.getLa(), cluster.getLo())) // Create a copy of each cluster
-                .forEachOrdered(copiedClusters::add); // Manually add each copy to the list
+            // Create a copy of each cluster
+            .map(cluster -> new Cluster(cluster.getLa(), cluster.getLo())) 
+            // Manually add each copy to the list
+            .forEachOrdered(copiedClusters::add); 
     
         return copiedClusters;
     }
     
-
-
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()); // Use available cores
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
     
         for (Cluster cluster : clusters) {
+            // Submit a task to the executor service
             futures.add(executor.submit(() -> {
                 double sumLatitude = 0;
                 double sumLongitude = 0;
@@ -408,7 +399,7 @@ class Parallel {
                         numSites++;
                     }
                 }
-                if (numSites != 0) { // Avoid division by zero
+                if (numSites != 0) {
                     cluster.setLa(sumLatitude / numSites);
                     cluster.setLo(sumLongitude / numSites);
                 }
@@ -418,12 +409,12 @@ class Parallel {
         // Wait for all tasks to complete
         for (Future<?> future : futures) {
             try {
-                future.get(); // This will block until the task completes
+                future.get(); 
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
-        executor.shutdown(); // Shut down the executor service
+        executor.shutdown(); 
     }
 
 
@@ -473,17 +464,6 @@ class Parallel {
 }
 class Distributive {
 
-        // Calculate the distance of a site between all the clusters
-        public static double calculateDistance(Site site, Cluster cluster) {
-            double siteLatitude = Double.valueOf(site.getLa());
-            double siteLongitude = Double.valueOf(site.getLo());
-            double clusterLatitude = cluster.getLa();
-            double clusterLongitude = cluster.getLo();
-            double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
-                    + Math.pow((siteLongitude - clusterLongitude), 2));
-            return distance;
-        }
-    
         public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
             try {
                 int id = MPI.COMM_WORLD.Rank();
@@ -516,7 +496,7 @@ class Distributive {
                     double minDistance = Double.MAX_VALUE;
                     Cluster closestCluster = null;
                     for (Cluster cluster : clusters) {
-                        double distance = calculateDistance(site, cluster);
+                        double distance = JSON.calculateDistance(site, cluster);
                         if (distance < minDistance) {
                             minDistance = distance;
                             closestCluster = cluster;
@@ -540,7 +520,8 @@ class Distributive {
                 e.printStackTrace();
             }
         }
-
+      
+    /*     
     public static void initializeClustersForProcessors() {
         try {
             int id = MPI.COMM_WORLD.Rank();
@@ -597,15 +578,11 @@ class Distributive {
             e.printStackTrace();
         }
     }
-    
+    */
 
-    // calculate the new center of each cluster ( make sure it's in the center of
-    // the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
         try {
-            int id = MPI.COMM_WORLD.Rank();
-            int size = MPI.COMM_WORLD.Size();
-    
+
             double[] localSums = new double[clusters.size() * 3]; // latitudeSum, longitudeSum, count
             Arrays.fill(localSums, 0.0);
     
@@ -646,84 +623,62 @@ class Distributive {
             e.printStackTrace();
         }
     }
-    
 
-    public static double calculateDistanceBetweenCentroids(Cluster cluster1, Cluster cluster2) {
-        double latDiff = cluster1.getLa() - cluster2.getLa();
-        double lonDiff = cluster1.getLo() - cluster2.getLo();
-        return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
-    }
-
-
-    // check if the clusters are the same for a given new site with new center and
-    // another older site provided
     public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
-        int id = MPI.COMM_WORLD.Rank();
-        int size = MPI.COMM_WORLD.Size();
-    
-        int n = newClusters.size();
-    
-        double[] clusters_latitudes = new double[n];
-        double[] clusters_longitudes = new double[n];
-        double[] clusters_latitudes_copy = new double[n];
-        double[] clusters_longitudes_copy = new double[n];
-    
-    
-        if (id == 0) {
-            for (int i = 0; i < n; i++) {
-                clusters_latitudes[i] = newClusters.get(i).getLa();
-                clusters_longitudes[i] = newClusters.get(i).getLo();
-                clusters_latitudes_copy[i] = oldClusters.get(i).getLa();
-                clusters_longitudes_copy[i] = oldClusters.get(i).getLo();
-            }
-        }
-    
-        int[] sendCounts = new int[size];
-        int[] displacements = new int[size];
-        for (int i = 0; i < size; i++) {
-            sendCounts[i] = n / size;
-            displacements[i] = i * sendCounts[i];
-        }
-        if (n % size != 0) {
-            sendCounts[size - 1] += n % size;
-        }
-
-        double[] recvBufLat = new double[sendCounts[id]];
-        double[] recvBufLon = new double[sendCounts[id]];
-        double[] recvBufLatCopy = new double[sendCounts[id]];
-        double[] recvBufLonCopy = new double[sendCounts[id]];
-    
         try {
-            MPI.COMM_WORLD.Scatterv(clusters_latitudes, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLat, 0, sendCounts[id], MPI.DOUBLE, 0);
-            MPI.COMM_WORLD.Scatterv(clusters_longitudes, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLon, 0, sendCounts[id], MPI.DOUBLE, 0);
-            MPI.COMM_WORLD.Scatterv(clusters_latitudes_copy, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLatCopy, 0, sendCounts[id], MPI.DOUBLE, 0);
-            MPI.COMM_WORLD.Scatterv(clusters_longitudes_copy, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLonCopy, 0, sendCounts[id], MPI.DOUBLE, 0);
+            int id = MPI.COMM_WORLD.Rank();
+            int size = MPI.COMM_WORLD.Size();
+    
+            int numClusters = newClusters.size();
+    
+            // Broadcast the number of clusters to all processes
+            int[] clusterSize = new int[1];
+            if (id == 0) {
+                clusterSize[0] = numClusters;
+            }
+            MPI.COMM_WORLD.Bcast(clusterSize, 0, 1, MPI.INT, 0);
+            numClusters = clusterSize[0];
+    
+            // Distribute clusters among processors
+            int[] sendCounts = new int[size];
+            int[] displacements = new int[size];
+            for (int i = 0; i < size; i++) {
+                sendCounts[i] = numClusters / size;
+                displacements[i] = i * sendCounts[i];
+            }
+            if (numClusters % size != 0) {
+                sendCounts[size - 1] += numClusters % size;
+            }
+    
+            Cluster[] newClusterArray = new Cluster[numClusters];
+            Cluster[] oldClusterArray = new Cluster[numClusters];
+            if (id == 0) {
+                newClusterArray = newClusters.toArray(new Cluster[0]);
+                oldClusterArray = oldClusters.toArray(new Cluster[0]);
+            }
+    
+            Cluster[] localNewClusters = new Cluster[sendCounts[id]];
+            Cluster[] localOldClusters = new Cluster[sendCounts[id]];
+            MPI.COMM_WORLD.Scatterv(newClusterArray, 0, sendCounts, displacements, MPI.OBJECT, localNewClusters, 0, sendCounts[id], MPI.OBJECT, 0);
+            MPI.COMM_WORLD.Scatterv(oldClusterArray, 0, sendCounts, displacements, MPI.OBJECT, localOldClusters, 0, sendCounts[id], MPI.OBJECT, 0);
+    
+            boolean localSame = true;
+            for (int i = 0; i < localNewClusters.length; i++) {
+                double distance = JSON.calculateDistanceBetweenCentroids(localNewClusters[i], localOldClusters[i]);
+                if (distance > 0) {
+                    localSame = false;
+                    break;
+                }
+            }
+    
+            boolean[] allSame = new boolean[1];
+            MPI.COMM_WORLD.Allreduce(new boolean[]{localSame}, 0, allSame, 0, 1, MPI.BOOLEAN, MPI.LAND);
+    
+            return allSame[0];
         } catch (MPIException e) {
             System.err.println("MPIException occurred: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-    
-        boolean localSame = true;
-    
-        for (int i = 0; i < sendCounts[id]; i++) {
-            double distance = calculateDistanceBetweenCentroids(recvBufLat[i], recvBufLon[i], recvBufLatCopy[i], recvBufLonCopy[i]);
-            if (distance > 0) {
-                localSame = false;
-                break;
-            }
-        }
-    
-        boolean[] allSame = new boolean[1];
-        MPI.COMM_WORLD.Allreduce(new boolean[]{localSame}, 0, allSame, 0, 1, MPI.BOOLEAN, MPI.LAND);
-    
-        return allSame[0];
     }
-    
-
-    public static double calculateDistanceBetweenCentroids(double la1, double lo1, double la2, double lo2) {
-        double latDiff = la1 - la2;
-        double lonDiff = lo1 - lo2;
-        return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
-    }
-
 }
