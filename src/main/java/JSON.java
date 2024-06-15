@@ -473,18 +473,6 @@ class Parallel {
 }
 class Distributive {
 
-        
-        public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
-            ArrayList<Cluster> copiedClusters = new ArrayList<>();
-            for (Cluster cluster : clusters) {
-                // Create a new Cluster instance and copy values
-                Cluster newCluster = new Cluster(cluster.getLa(), cluster.getLo());
-                // If there are other properties to copy, do it here
-                copiedClusters.add(newCluster);
-            }
-            return copiedClusters;
-        }
-
         // Calculate the distance of a site between all the clusters
         public static double calculateDistance(Site site, Cluster cluster) {
             double siteLatitude = Double.valueOf(site.getLa());
@@ -496,46 +484,169 @@ class Distributive {
             return distance;
         }
     
-
-       // assign the cluster to the new centers
-       public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
-        for (Site site : sites) {
-            double minDistance = Double.MAX_VALUE;
-            Cluster closestCluster = null;
-            for (Cluster cluster : clusters) {
-                double distance = calculateDistance(site, cluster);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestCluster = cluster;
+        public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+            try {
+                int id = MPI.COMM_WORLD.Rank();
+                int size = MPI.COMM_WORLD.Size();
+        
+                int numSites = sites.size();
+        
+                // Calculate send counts and displacements for sites
+                int[] siteSendCounts = new int[size];
+                int[] siteDisplacements = new int[size];
+                for (int i = 0; i < size; i++) {
+                    siteSendCounts[i] = numSites / size;
+                    siteDisplacements[i] = i * siteSendCounts[i];
                 }
+                if (numSites % size != 0) {
+                    siteSendCounts[size - 1] += numSites % size;
+                }
+        
+                // Distribute sites among processors
+                Site[] siteArray = new Site[numSites];
+                if (id == 0) {
+                    siteArray = sites.toArray(new Site[0]);
+                }
+        
+                Site[] localSites = new Site[siteSendCounts[id]];
+                MPI.COMM_WORLD.Scatterv(siteArray, 0, siteSendCounts, siteDisplacements, MPI.OBJECT, localSites, 0, siteSendCounts[id], MPI.OBJECT, 0);
+        
+                // Perform local assignment of sites to clusters
+                for (Site site : localSites) {
+                    double minDistance = Double.MAX_VALUE;
+                    Cluster closestCluster = null;
+                    for (Cluster cluster : clusters) {
+                        double distance = calculateDistance(site, cluster);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestCluster = cluster;
+                        }
+                    }
+                    site.setCluster(closestCluster);
+                }
+        
+                // Gather the updated sites from all processors
+                Site[] updatedSites = new Site[numSites];
+                MPI.COMM_WORLD.Gatherv(localSites, 0, localSites.length, MPI.OBJECT, updatedSites, 0, siteSendCounts, siteDisplacements, MPI.OBJECT, 0);
+        
+                // Broadcast the updated sites to all processors
+                MPI.COMM_WORLD.Bcast(updatedSites, 0, updatedSites.length, MPI.OBJECT, 0);
+        
+                // Update the local copy of sites with the new assignments
+                Dataset.setSites(new ArrayList<>(Arrays.asList(updatedSites)));
+        
+            } catch (MPIException e) {
+                System.err.println("MPIException occurred: " + e.getMessage());
+                e.printStackTrace();
             }
-            site.setCluster(closestCluster);
         }
-        Dataset.setSites(sites);
+
+    public static void initializeClustersForProcessors() {
+        try {
+            int id = MPI.COMM_WORLD.Rank();
+            int size = MPI.COMM_WORLD.Size();
+    
+            ArrayList<Cluster> clusters = null;
+            ArrayList<Site> sites = null;
+    
+            if (id == 0) {
+                clusters = Dataset.getClusters();
+                sites = Dataset.getSites();
+            }
+    
+            // Broadcast sizes
+            int[] sizes = new int[2];
+            if (id == 0) {
+                sizes[0] = clusters.size();
+                sizes[1] = sites.size();
+            }
+            MPI.COMM_WORLD.Bcast(sizes, 0, 2, MPI.INT, 0);
+            int numClusters = sizes[0];
+            int numSites = sizes[1];
+    
+            // Broadcast sites to all processors
+            Site[] siteArray = new Site[numSites];
+            if (id == 0) {
+                siteArray = sites.toArray(new Site[0]);
+            }
+            MPI.COMM_WORLD.Bcast(siteArray, 0, numSites, MPI.OBJECT, 0);
+            Dataset.setSites(new ArrayList<>(Arrays.asList(siteArray)));
+    
+            // Distribute clusters among processors
+            int[] clusterSendCounts = new int[size];
+            int[] clusterDisplacements = new int[size];
+            for (int i = 0; i < size; i++) {
+                clusterSendCounts[i] = numClusters / size;
+                clusterDisplacements[i] = i * clusterSendCounts[i];
+            }
+            if (numClusters % size != 0) {
+                clusterSendCounts[size - 1] += numClusters % size;
+            }
+    
+            Cluster[] clusterArray = new Cluster[numClusters];
+            if (id == 0) {
+                clusterArray = clusters.toArray(new Cluster[0]);
+            }
+    
+            Cluster[] localClusters = new Cluster[clusterSendCounts[id]];
+            MPI.COMM_WORLD.Scatterv(clusterArray, 0, clusterSendCounts, clusterDisplacements, MPI.OBJECT, localClusters, 0, clusterSendCounts[id], MPI.OBJECT, 0);
+            Dataset.setClusters(new ArrayList<>(Arrays.asList(localClusters)));
+    
+        } catch (MPIException e) {
+            System.err.println("MPIException occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+    
 
     // calculate the new center of each cluster ( make sure it's in the center of
     // the sites that it contains)
     public static void calculateNewCenters(ArrayList<Cluster> clusters) {
-        for (Cluster cluster : clusters) {
-            double sumLatitude = 0;
-            double sumLongitude = 0;
-            int numSites = 0;
-            for (Site site : Dataset.getSites()) {
-                if (site.getCluster().equals(cluster)) {
-
-                    sumLatitude += Double.valueOf(site.getLa());
-                    sumLongitude += Double.valueOf(site.getLo());
-                    numSites++;
+        try {
+            int id = MPI.COMM_WORLD.Rank();
+            int size = MPI.COMM_WORLD.Size();
+    
+            double[] localSums = new double[clusters.size() * 3]; // latitudeSum, longitudeSum, count
+            Arrays.fill(localSums, 0.0);
+    
+            for (int i = 0; i < clusters.size(); i++) {
+                Cluster cluster = clusters.get(i);
+                double sumLatitude = 0;
+                double sumLongitude = 0;
+                int numSites = 0;
+    
+                for (Site site : Dataset.getSites()) {
+                    if (site.getCluster().equals(cluster)) {
+                        sumLatitude += Double.valueOf(site.getLa());
+                        sumLongitude += Double.valueOf(site.getLo());
+                        numSites++;
+                    }
+                }
+    
+                localSums[i * 3] = sumLatitude;
+                localSums[i * 3 + 1] = sumLongitude;
+                localSums[i * 3 + 2] = numSites;
+            }
+    
+            double[] globalSums = new double[clusters.size() * 3];
+            MPI.COMM_WORLD.Allreduce(localSums, 0, globalSums, 0, clusters.size() * 3, MPI.DOUBLE, MPI.SUM);
+    
+            for (int i = 0; i < clusters.size(); i++) {
+                double sumLatitude = globalSums[i * 3];
+                double sumLongitude = globalSums[i * 3 + 1];
+                int numSites = (int) globalSums[i * 3 + 2];
+    
+                if (numSites != 0) { // Avoid division by zero
+                    clusters.get(i).setLa(sumLatitude / numSites);
+                    clusters.get(i).setLo(sumLongitude / numSites);
                 }
             }
-            if (numSites != 0) { // Avoid division by zero
-                // Update the coordinates in the actual clusters list
-                cluster.setLa(sumLatitude / numSites);
-                cluster.setLo(sumLongitude / numSites);
-            }
+        } catch (MPIException e) {
+            System.err.println("MPIException occurred: " + e.getMessage());
+            e.printStackTrace();
         }
     }
+    
 
     public static double calculateDistanceBetweenCentroids(Cluster cluster1, Cluster cluster2) {
         double latDiff = cluster1.getLa() - cluster2.getLa();

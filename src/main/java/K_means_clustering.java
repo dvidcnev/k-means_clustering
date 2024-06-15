@@ -144,47 +144,54 @@ public class K_means_clustering {
                 long measurementS = 0;
                 long measurementE = 0;
 
-                System.out.println("Processor " + rank + " has " + Dataset.getClusters().size() + " clusters and " + Dataset.getSites().size() + " sites");
-                for ( int i=0; i<copiedClusters.size(); i++ ) {
-                    System.out.println("Cluster["+i+"] " + copiedClusters.get(i).getId() + " with latitude " + copiedClusters.get(i).getLa() + " and longitude " + copiedClusters.get(i).getLo() + " for processor " + rank);
-                }
-                for ( int i=0; i<Dataset.getSites().size(); i++ ) {
-                    System.out.println("Site["+i+"] with latitude " + Dataset.getSites().get(i).getLa() + " and longitude " + Dataset.getSites().get(i).getLo() + " for processor " + rank);
+                // System.out.println("Processor " + rank + " has " + Dataset.getClusters().size() + " clusters and " + Dataset.getSites().size() + " sites");
+                // for ( int i=0; i<copiedClusters.size(); i++ ) {
+                //     System.out.println("Cluster["+i+"] " + copiedClusters.get(i).getId() + " with latitude " + copiedClusters.get(i).getLa() + " and longitude " + copiedClusters.get(i).getLo() + " for processor " + rank);
+                // }
+                // for ( int i=0; i<Dataset.getSites().size(); i++ ) {
+                //     System.out.println("Site["+i+"] with latitude " + Dataset.getSites().get(i).getLa() + " and longitude " + Dataset.getSites().get(i).getLo() + " for processor " + rank);
+                // }
+                
+                while (!converged) {
+                    cycles++;
+
+                    // if ( rank == 0 ) {
+                    //     measurementS = System.currentTimeMillis();
+                    // }
+                    Distributive.calculateNewCenters(Dataset.getClusters());
+                    
+                    // if (rank == 0) {
+                    //     measurementE = System.currentTimeMillis();
+                    //     System.out.println("Time to calculate new centers: " + (measurementE - measurementS) / 1000.0 + "s");
+                    // }
+
+                    measurementS = System.currentTimeMillis();
+                    Distributive.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
+                    measurementE = System.currentTimeMillis();
+                    // if (rank == 0) {
+                    //     System.out.println("Time to assign sites to new clusters: " + (measurementE - measurementS) / 1000.0 + "s");
+                    // }
+
+                    measurementS = System.currentTimeMillis();
+                    converged = Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters);
+                    measurementE = System.currentTimeMillis();
+                    // if (rank == 0) {
+                    //     System.out.println("Time to check if clusters are the same: " + (measurementE - measurementS) / 1000.0 + "s");
+                    // }
+
+                    if (rank == 0) {
+                        System.out.println("Cycle: " + cycles);
+                    }
+
+                    copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
+                    System.out.println("Processor " + rank + " has " + Dataset.getClusters().size() + " clusters and " + Dataset.getSites().size() + " sites");
+                    for ( int i=0; i<copiedClusters.size(); i++ ) {
+                        System.out.println("Cluster["+i+"] " + copiedClusters.get(i).getId() + " with latitude " + copiedClusters.get(i).getLa() + " and longitude " + copiedClusters.get(i).getLo() + " for processor " + rank);
+                    }
                 }
                 
-                // while (!converged) {
-                //     cycles++;
-
-                //     measurementS = System.currentTimeMillis();
-                //     Distributive.calculateNewCenters(Dataset.getClusters());
-                //     measurementE = System.currentTimeMillis();
-                //     if (rank == 0) {
-                //         System.out.println("Time to calculate new centers: " + (measurementE - measurementS) / 1000.0 + "s");
-                //     }
-
-                //     measurementS = System.currentTimeMillis();
-                //     Distributive.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
-                //     measurementE = System.currentTimeMillis();
-                //     if (rank == 0) {
-                //         System.out.println("Time to assign sites to new clusters: " + (measurementE - measurementS) / 1000.0 + "s");
-                //     }
-
-                //     measurementS = System.currentTimeMillis();
-                //     converged = Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters);
-                //     measurementE = System.currentTimeMillis();
-                //     if (rank == 0) {
-                //         System.out.println("Time to check if clusters are the same: " + (measurementE - measurementS) / 1000.0 + "s");
-                //     }
-
-                //     if (rank == 0) {
-                //         System.out.println("Cycle: " + cycles);
-                //     }
-
-                //     copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
-                // }
-
-                long endTime = System.currentTimeMillis();
                 if (rank == 0) {
+                    long endTime = System.currentTimeMillis();
                     System.out.println("[DISTRIBUTED] Total time: " + (endTime - startTime) / 1000.0 + "s");
                     System.out.println("[DISTRIBUTED] Total cycles: " + cycles);
                 }
