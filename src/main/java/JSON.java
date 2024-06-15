@@ -472,84 +472,147 @@ class Parallel {
 
 }
 class Distributive {
-    
 
-    public static void calculateNewCenters(ArrayList<Cluster> clusters) {
-        for (Cluster cluster : clusters) {
-            double sumLat = 0.0;
-            double sumLon = 0.0;
-            int count = 0;
-            
-            for (Site site : Dataset.getSites()) {
-                if (site.getCluster().getId() == cluster.getId()) {
-                    sumLat += Double.parseDouble(site.getLa());
-                    sumLon += Double.parseDouble(site.getLo());
-                    count++;
-                }
+        
+        public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
+            ArrayList<Cluster> copiedClusters = new ArrayList<>();
+            for (Cluster cluster : clusters) {
+                // Create a new Cluster instance and copy values
+                Cluster newCluster = new Cluster(cluster.getLa(), cluster.getLo());
+                // If there are other properties to copy, do it here
+                copiedClusters.add(newCluster);
             }
-
-            if (count > 0) {
-                cluster.setLa(sumLat / count);
-                cluster.setLo(sumLon / count);
-            }
+            return copiedClusters;
         }
-    }
+
+        // Calculate the distance of a site between all the clusters
+        public static double calculateDistance(Site site, Cluster cluster) {
+            double siteLatitude = Double.valueOf(site.getLa());
+            double siteLongitude = Double.valueOf(site.getLo());
+            double clusterLatitude = cluster.getLa();
+            double clusterLongitude = cluster.getLo();
+            double distance = Math.sqrt(Math.pow((siteLatitude - clusterLatitude), 2)
+                    + Math.pow((siteLongitude - clusterLongitude), 2));
+            return distance;
+        }
     
-    public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
+
+       // assign the cluster to the new centers
+       public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
         for (Site site : sites) {
             double minDistance = Double.MAX_VALUE;
-            Cluster nearestCluster = null;
-
+            Cluster closestCluster = null;
             for (Cluster cluster : clusters) {
-                double distance = calculateDistance(Double.parseDouble(site.getLa()), Double.parseDouble(site.getLo()), cluster.getLa(), cluster.getLo());
+                double distance = calculateDistance(site, cluster);
                 if (distance < minDistance) {
                     minDistance = distance;
-                    nearestCluster = cluster;
+                    closestCluster = cluster;
                 }
             }
+            site.setCluster(closestCluster);
+        }
+        Dataset.setSites(sites);
+    }
 
-            if (nearestCluster != null) {
-                site.setCluster(nearestCluster);
+    // calculate the new center of each cluster ( make sure it's in the center of
+    // the sites that it contains)
+    public static void calculateNewCenters(ArrayList<Cluster> clusters) {
+        for (Cluster cluster : clusters) {
+            double sumLatitude = 0;
+            double sumLongitude = 0;
+            int numSites = 0;
+            for (Site site : Dataset.getSites()) {
+                if (site.getCluster().equals(cluster)) {
+
+                    sumLatitude += Double.valueOf(site.getLa());
+                    sumLongitude += Double.valueOf(site.getLo());
+                    numSites++;
+                }
+            }
+            if (numSites != 0) { // Avoid division by zero
+                // Update the coordinates in the actual clusters list
+                cluster.setLa(sumLatitude / numSites);
+                cluster.setLo(sumLongitude / numSites);
             }
         }
     }
 
-    public static double calculateDistance(double la1, double lo1, double la2, double lo2) {
-        return Math.sqrt(Math.pow(la1 - la2, 2) + Math.pow(lo1 - lo2, 2));
+    public static double calculateDistanceBetweenCentroids(Cluster cluster1, Cluster cluster2) {
+        double latDiff = cluster1.getLa() - cluster2.getLa();
+        double lonDiff = cluster1.getLo() - cluster2.getLo();
+        return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
     }
 
-    public static boolean clustersAreTheSame(ArrayList<Cluster> clusters1, ArrayList<Cluster> clusters2) {
-        if (clusters1.size() != clusters2.size()) {
-            return false;
-        }
 
-        for (int i = 0; i < clusters1.size(); i++) {
-            Cluster cluster1 = clusters1.get(i);
-            Cluster cluster2 = clusters2.get(i);
-            if (cluster1.getId() != cluster2.getId() ||
-                cluster1.getLa() != cluster2.getLa() ||
-                cluster1.getLo() != cluster2.getLo()) {
-                return false;
+    // check if the clusters are the same for a given new site with new center and
+    // another older site provided
+    public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
+        int id = MPI.COMM_WORLD.Rank();
+        int size = MPI.COMM_WORLD.Size();
+    
+        int n = newClusters.size();
+    
+        double[] clusters_latitudes = new double[n];
+        double[] clusters_longitudes = new double[n];
+        double[] clusters_latitudes_copy = new double[n];
+        double[] clusters_longitudes_copy = new double[n];
+    
+    
+        if (id == 0) {
+            for (int i = 0; i < n; i++) {
+                clusters_latitudes[i] = newClusters.get(i).getLa();
+                clusters_longitudes[i] = newClusters.get(i).getLo();
+                clusters_latitudes_copy[i] = oldClusters.get(i).getLa();
+                clusters_longitudes_copy[i] = oldClusters.get(i).getLo();
             }
         }
-
-        return true;
-    }
-}
-
-class Utils {
-    public static byte[] serializeObject(Object obj) throws IOException {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream out = new ObjectOutputStream(bos)) {
-            out.writeObject(obj);
-            return bos.toByteArray();
+    
+        int[] sendCounts = new int[size];
+        int[] displacements = new int[size];
+        for (int i = 0; i < size; i++) {
+            sendCounts[i] = n / size;
+            displacements[i] = i * sendCounts[i];
         }
+        if (n % size != 0) {
+            sendCounts[size - 1] += n % size;
+        }
+
+        double[] recvBufLat = new double[sendCounts[id]];
+        double[] recvBufLon = new double[sendCounts[id]];
+        double[] recvBufLatCopy = new double[sendCounts[id]];
+        double[] recvBufLonCopy = new double[sendCounts[id]];
+    
+        try {
+            MPI.COMM_WORLD.Scatterv(clusters_latitudes, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLat, 0, sendCounts[id], MPI.DOUBLE, 0);
+            MPI.COMM_WORLD.Scatterv(clusters_longitudes, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLon, 0, sendCounts[id], MPI.DOUBLE, 0);
+            MPI.COMM_WORLD.Scatterv(clusters_latitudes_copy, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLatCopy, 0, sendCounts[id], MPI.DOUBLE, 0);
+            MPI.COMM_WORLD.Scatterv(clusters_longitudes_copy, 0, sendCounts, displacements, MPI.DOUBLE, recvBufLonCopy, 0, sendCounts[id], MPI.DOUBLE, 0);
+        } catch (MPIException e) {
+            System.err.println("MPIException occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+    
+        boolean localSame = true;
+    
+        for (int i = 0; i < sendCounts[id]; i++) {
+            double distance = calculateDistanceBetweenCentroids(recvBufLat[i], recvBufLon[i], recvBufLatCopy[i], recvBufLonCopy[i]);
+            if (distance > 0) {
+                localSame = false;
+                break;
+            }
+        }
+    
+        boolean[] allSame = new boolean[1];
+        MPI.COMM_WORLD.Allreduce(new boolean[]{localSame}, 0, allSame, 0, 1, MPI.BOOLEAN, MPI.LAND);
+    
+        return allSame[0];
+    }
+    
+
+    public static double calculateDistanceBetweenCentroids(double la1, double lo1, double la2, double lo2) {
+        double latDiff = la1 - la2;
+        double lonDiff = lo1 - lo2;
+        return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
     }
 
-    public static Object deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-             ObjectInputStream in = new ObjectInputStream(bis)) {
-            return in.readObject();
-        }
-    }
 }
