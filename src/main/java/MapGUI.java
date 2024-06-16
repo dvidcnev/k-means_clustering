@@ -106,8 +106,7 @@ public class MapGUI extends Application {
 
                                                         JLOptions.builder()
                                                                         .color(
-                                                                                        // get the rgb of the cluster
-                                                                                        // that the site belongs to
+                                                                                        // get the rgb of the cluster that the site belongs to
                                                                                         Color.rgb(
                                                                                                         obj.getCluster().getRGB()
                                                                                                                         .getR(),

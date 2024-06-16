@@ -48,7 +48,6 @@ public class JSON {
     private static List<List<List<Double>>> extractPolygons(JsonNode root) {
         List<List<List<Double>>> polygons = new ArrayList<>();
 
-        // Assuming GeoJSON structure has 'features' containing polygons
         JsonNode features = root.path("features");
         for (JsonNode feature : features) {
             JsonNode geometry = feature.path("geometry");
@@ -169,9 +168,7 @@ public class JSON {
         }
     }
 
-    // generate random sites around EUROPE with random latitudes and longtiudes
-    // around central europe and the max capacity for each site generated around
-    // europe is a random number between 0 and the max capacity of the dataset
+    // generate random sites around EUROPE with random latitudes and longtiudes around central europe and the max capacity for each site generated around europe is a random number between 0 and the max capacity of the dataset
     public static ArrayList<Site> randomizeEurope(int times) {
         Random rand = new Random();
         ArrayList<Site> sites = new ArrayList<Site>();
@@ -179,8 +176,7 @@ public class JSON {
         // Assuming the maximum capacity is set as 100 for example purposes
         double maxCapacity = findMaxCapacity();
 
-        // Generate random sites around Europe AFTER the whole dataset from europe has
-        // been generated
+        // Generate random sites around Europe AFTER the whole dataset from europe has been generated
         ArrayList<double[]> randomCoordinates = generateLatLon(times);
 
         // Generate random sites around Europe
@@ -260,7 +256,7 @@ public class JSON {
             double randomLongitude = Double.valueOf(site.getLo());
     
             Cluster cluster = new Cluster(randomLatitude, randomLongitude);
-            cluster.setId(clusters.size()); // Assign unique ID based on order of creation
+            cluster.setId(clusters.size()); 
             clusters.add(cluster);
         }
     
@@ -287,9 +283,7 @@ public class JSON {
     public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
         ArrayList<Cluster> copiedClusters = new ArrayList<>();
         for (Cluster cluster : clusters) {
-            // Create a new Cluster instance and copy values
             Cluster newCluster = new Cluster(cluster.getLa(), cluster.getLo());
-            // If there are other properties to copy, do it here
             copiedClusters.add(newCluster);
         }
         return copiedClusters;
@@ -352,8 +346,7 @@ public class JSON {
     }
 
 
-    // check if the clusters are the same for a given new site with new center and
-    // another older site provided
+    // check if the clusters are the same for a given new site with new center and another older site provided
     public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
         for (int i = 0; i < newClusters.size(); i++) {
             double distance = calculateDistanceBetweenCentroids(newClusters.get(i), oldClusters.get(i));
@@ -369,14 +362,11 @@ public class JSON {
 class Parallel {
 
     public static ArrayList<Cluster> deepCopyClusters(ArrayList<Cluster> clusters) {
-        // Initialize the list that will store the copies
         ArrayList<Cluster> copiedClusters = new ArrayList<>();
     
-        // Use parallelStream for concurrent processing
         clusters.parallelStream()
             // Create a copy of each cluster
             .map(cluster -> new Cluster(cluster.getLa(), cluster.getLo())) 
-            // Manually add each copy to the list
             .forEachOrdered(copiedClusters::add); 
     
         return copiedClusters;
@@ -419,7 +409,7 @@ class Parallel {
 
 
     public static void assignSitesToNewClusters(ArrayList<Site> sites, ArrayList<Cluster> clusters) {
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()); // Use available cores
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()); 
         List<Future<?>> futures = new ArrayList<>();
     
         for (Site site : sites) {
@@ -440,18 +430,17 @@ class Parallel {
         // Wait for all tasks to complete
         for (Future<?> future : futures) {
             try {
-                future.get(); // This will block until the task completes
+                future.get(); 
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
-        executor.shutdown(); // Shut down the executor service
+        executor.shutdown(); 
     }
 
 
 
     public static boolean clustersAreTheSame(ArrayList<Cluster> newClusters, ArrayList<Cluster> oldClusters) {
-        // Use parallelStream() for concurrent processing
         return newClusters.parallelStream()
                           .allMatch(newCluster -> {
                               int index = newClusters.indexOf(newCluster);
