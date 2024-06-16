@@ -129,8 +129,6 @@ public class K_means_clustering {
         // DISTRIBUTED
         if (mode == 2) {
                 cycles = 0;
-                boolean converged = false;
-
                 Dataset.initializeClustersForProcessors();
                 ArrayList<Cluster> copiedClusters = JSON.deepCopyClusters(Dataset.getClusters());
 
@@ -139,13 +137,14 @@ public class K_means_clustering {
                 // long measurementS = 0;
                 // long measurementE = 0;
                 
-                while (!converged) {
+                while (true) {
                     cycles++;
 
                     Distributive.calculateNewCenters(Dataset.getClusters());
                     Distributive.assignSitesToNewClusters(Dataset.getSites(), Dataset.getClusters());
-                    converged = Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters);
-
+                    if ( Distributive.clustersAreTheSame(Dataset.getClusters(), copiedClusters)) {
+                        break;
+                    }
                     if (rank == 0) {
                         System.out.println("Cycle: " + cycles);
                     }
