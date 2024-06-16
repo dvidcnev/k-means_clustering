@@ -42,9 +42,9 @@
         <version>2.15.2</version>
     </dependency> -->
     <dependency>
-      <groupId>io.</groupId>
-      <artifactId>jlmap</artifactId>
-      <version>1.9.4</version>
+	  <groupId>io.github.makbn</groupId>
+	  <artifactId>jlmap</artifactId>
+	  <version>1.9.4</version>
     </dependency>
     <dependency>
         <groupId>org.junit.jupiter</groupId>
